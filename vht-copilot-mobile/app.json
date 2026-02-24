@@ -1,30 +1,49 @@
 {
   "expo": {
-    "name": "vht-copilot-mobile",
-    "slug": "vht-copilot-mobile",
+    "name": "VHT Co-Pilot",
+    "slug": "vht-copilot",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "vhtcopilot",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#003366"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vhtcopilot.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "VHT Co-Pilot needs microphone access to capture patient symptoms via voice.",
+        "NSLocationWhenInUseUsageDescription": "VHT Co-Pilot needs location access for emergency referrals.",
+        "NSSpeechRecognitionUsageDescription": "VHT Co-Pilot uses speech recognition to understand patient symptoms."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#003366"
       },
+      "package": "com.vhtcopilot.app",
+      "permissions": [
+        "RECORD_AUDIO",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
+      "bundler": "metro",
+      "output": "static",
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
     }
   }
 }
