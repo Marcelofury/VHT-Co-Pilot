@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VHT Co-Pilot Sync Status</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        :root {
+            --health-blue: #007BFF;
+            --deep-blue: #003366;
+            --triage-yellow: #FFD700;
+            --soft-blue-border: #E3F2FD;
+            --success-green: #28A745;
+        }
+        @layer base {
+            body {
+                @apply font-display text-[#003366] bg-white antialiased;
+            }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007BFF",
+                        "deep-blue": "#003366",
+                        "triage-yellow": "#FFD700",
+                        "success-green": "#28A745",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="h-screen overflow-hidden flex flex-col">
+<div class="bg-[var(--triage-yellow)] px-4 py-3 flex items-center justify-between shadow-sm border-b border-black/5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-black font-bold">warning</span>
+<span class="font-extrabold text-sm tracking-wide uppercase text-black">Connectivity: Spotty</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-xs font-black text-black bg-black/10 px-2 py-0.5 rounded-full">Offline Ready</span>
+<span class="material-symbols-outlined text-black text-xl">wifi_off</span>
+</div>
+</div>
+<header class="flex items-center justify-between p-4 bg-white border-b border-slate-100">
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-deep-blue">
+<span class="material-symbols-outlined font-bold">arrow_back_ios_new</span>
+</button>
+<div class="text-center">
+<h1 class="text-xl font-extrabold text-deep-blue leading-tight">VHT Co-Pilot</h1>
+<p class="text-[10px] text-primary font-black uppercase tracking-widest">Sync &amp; Cloud Status</p>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-deep-blue">
+<span class="material-symbols-outlined font-bold">cloud_sync</span>
+</button>
+</header>
+<main class="flex-1 flex flex-col p-6 gap-8 overflow-y-auto">
+<div class="flex flex-col items-center text-center gap-4 py-4">
+<div class="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center border-4 border-white shadow-sm">
+<span class="material-symbols-outlined text-success-green text-6xl font-bold">check_circle</span>
+</div>
+<div class="space-y-1">
+<h2 class="text-2xl font-black text-deep-blue">All Data Securely Synced</h2>
+<p class="text-slate-500 font-medium">Bonna bisindikiddwa mu eCHIS</p>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<p class="text-xs font-black text-primary uppercase tracking-wider">eCHIS Upload Progress</p>
+<p class="text-xs font-bold text-deep-blue">98% Complete</p>
+</div>
+<div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full w-[98%]"></div>
+</div>
+</div>
+<div class="space-y-4">
+<p class="text-xs font-black text-slate-400 uppercase tracking-widest">Recently Synced Records</p>
+<div class="flex flex-col gap-3">
+<div class="bg-white rounded-xl p-4 border border-[var(--soft-blue-border)] flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-[#F0F7FF] rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<p class="font-bold text-deep-blue">Kato J. - Intake Complete</p>
+<p class="text-[10px] font-bold text-slate-400">Synced 2m ago • #VHT-8824</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-success-green text-xl">check_circle</span>
+</div>
+<div class="bg-white rounded-xl p-4 border border-[var(--soft-blue-border)] flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-[#F0F7FF] rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<p class="font-bold text-deep-blue">Nantongo M. - Follow-up</p>
+<p class="text-[10px] font-bold text-slate-400">Synced 5m ago • #VHT-8819</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-success-green text-xl">check_circle</span>
+</div>
+<div class="bg-white rounded-xl p-4 border border-[var(--soft-blue-border)] flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-[#F0F7FF] rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">emergency</span>
+</div>
+<div>
+<p class="font-bold text-deep-blue">Mukasa D. - Referral</p>
+<p class="text-[10px] font-bold text-slate-400">Synced 12m ago • #VHT-8790</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-success-green text-xl">check_circle</span>
+</div>
+</div>
+</div>
+</main>
+<div class="bg-white px-6 pt-6 pb-10 flex flex-col items-center gap-4 shadow-[0_-10px_30px_rgba(0,0,0,0.03)]">
+<button class="w-full bg-primary text-white py-4 rounded-2xl font-extrabold text-lg shadow-lg shadow-primary/25 active:scale-95 transition-transform flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">sync</span>
+<span>Sync Now / Sindika kaati</span>
+</button>
+<p class="text-xs text-slate-400 font-bold">Last full sync: Today at 14:32</p>
+</div>
+<nav class="border-t border-slate-100 bg-white flex justify-around items-center px-4 py-4">
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">medical_services</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Intake</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">group</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Patients</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined font-black">sync</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Sync</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">settings</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Profile</span>
+</a>
+</nav>
+
+</body></html>

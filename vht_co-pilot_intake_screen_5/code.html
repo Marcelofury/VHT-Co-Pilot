@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VHT Co-Pilot Profile Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        :root {
+            --health-blue: #007BFF;
+            --deep-blue: #003366;
+            --triage-yellow: #FFD700;
+            --soft-blue-border: #E3F2FD;
+            --bg-light: #F8FAFC;
+        }
+        @layer base {
+            body {
+                @apply font-display text-[#003366] bg-white antialiased;
+            }
+        }
+        .ios-toggle {
+            @apply relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none;
+        }
+        .ios-toggle-dot {
+            @apply inline-block h-5 w-5 transform rounded-full bg-white transition-transform translate-x-1;
+        }
+        .ios-toggle-active .ios-toggle-dot {
+            @apply translate-x-5;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007BFF",
+                        "deep-blue": "#003366",
+                        "triage-yellow": "#FFD700",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="h-screen flex flex-col bg-white">
+<div class="h-12 w-full bg-white"></div>
+<header class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-100">
+<h1 class="text-2xl font-extrabold text-deep-blue">My Profile</h1>
+<button class="text-primary font-bold text-sm">Sign Out</button>
+</header>
+<main class="flex-1 overflow-y-auto bg-[#F8FAFC]">
+<div class="bg-white px-6 py-8 border-b border-slate-100">
+<div class="flex items-center gap-5">
+<div class="w-20 h-20 rounded-2xl bg-[var(--soft-blue-border)] flex items-center justify-center border-2 border-white shadow-sm overflow-hidden">
+<img alt="VHT Member" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGmGgZSSzmSNs8Hzxc8PZ3aL32U18H9TDVWWrLiEmDpSBywCxxtGw6fS5Z2NS028QwrsdrwXOJGpt4bsfj_l33FO4iDyMaW1yXWt2wgNXF0uEsq-JLI_UZPDArtb4sKmSo-OkmgCIlF-Hh338PyQ7dMgjw3D89hpnX3ocxC8w5g2R6I9OdqjTr778Ei2aCeUzJHbtz_jMnNNU1axo5XX2dNJXYgm3dfPu4F54Lho_k5tlY_DTp_MqbvB8l4x-kNKGE7Stl1I984zE"/>
+</div>
+<div>
+<h2 class="text-xl font-bold text-deep-blue leading-tight">Musa Kanda</h2>
+<p class="text-sm font-bold text-primary mb-1 uppercase tracking-wide">VHT ID: #UG-8821-KMP</p>
+<div class="flex items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span class="text-xs font-semibold">Nakaseke Village, Central</span>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 space-y-8">
+<section>
+<h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Preferences / Okulonda</h3>
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 divide-y divide-slate-50">
+<div class="flex items-center justify-between p-4 min-h-[64px]">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">translate</span>
+</div>
+<div>
+<p class="font-bold text-deep-blue">Primary Language</p>
+<p class="text-xs text-slate-500 font-medium">Luganda / English</p>
+</div>
+</div>
+<div class="bg-slate-100 p-1 rounded-lg flex gap-1">
+<button class="px-3 py-1 bg-white text-xs font-bold rounded-md shadow-sm border border-slate-200">Luganda</button>
+<button class="px-3 py-1 text-xs font-bold text-slate-400">ENG</button>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 min-h-[64px]">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">volume_up</span>
+</div>
+<p class="font-bold text-deep-blue">Voice Feedback</p>
+</div>
+<button class="ios-toggle bg-primary ios-toggle-active">
+<span class="ios-toggle-dot"></span>
+</button>
+</div>
+</div>
+</section>
+<section>
+<h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Offline Access &amp; Tools</h3>
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 divide-y divide-slate-50">
+<button class="w-full flex items-center justify-between p-4 active:bg-slate-50 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">map</span>
+</div>
+<div class="text-left">
+<p class="font-bold text-deep-blue">Offline Village Maps</p>
+<p class="text-xs text-green-600 font-bold">124 MB Downloaded</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-300">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 active:bg-slate-50 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">school</span>
+</div>
+<div class="text-left">
+<p class="font-bold text-deep-blue">Training Resources</p>
+<p class="text-xs text-slate-500 font-medium">8 modules available</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-300">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 active:bg-slate-50 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">sync</span>
+</div>
+<div class="text-left">
+<p class="font-bold text-deep-blue">Force Data Sync</p>
+<p class="text-xs text-slate-500 font-medium">Last synced: 2h ago</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-300">chevron_right</span>
+</button>
+</div>
+</section>
+<section class="pb-8">
+<div class="bg-primary/5 rounded-2xl p-6 border border-primary/10">
+<div class="flex items-center gap-4 mb-4">
+<span class="material-symbols-outlined text-primary text-3xl">support_agent</span>
+<div>
+<p class="font-bold text-deep-blue">Need help, Musa?</p>
+<p class="text-sm text-slate-600">Contact the district supervisor</p>
+</div>
+</div>
+<button class="w-full bg-white border-2 border-primary text-primary font-extrabold py-3 rounded-xl shadow-sm active:scale-[0.98] transition-all">
+                        Call Support
+                    </button>
+</div>
+</section>
+</div>
+</main>
+<nav class="border-t border-slate-100 bg-white flex justify-around items-center px-4 py-4 pb-8">
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">medical_services</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Intake</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">group</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Patients</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">clinical_notes</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Reports</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined font-black">person</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Profile</span>
+</a>
+</nav>
+
+</body></html>

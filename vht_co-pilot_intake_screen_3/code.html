@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VHT Co-Pilot Decision Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        :root {
+            --health-blue: #007BFF;
+            --deep-blue: #003366;
+            --urgent-red: #DC2626;
+            --soft-blue-border: #E3F2FD;
+        }
+        @layer base {
+            body {
+                @apply font-display text-[#003366] bg-white antialiased;
+            }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007BFF",
+                        "deep-blue": "#003366",
+                        "urgent-red": "#DC2626",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            min-height: max(844px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="h-screen overflow-hidden flex flex-col">
+<div class="bg-urgent-red px-4 py-3 flex items-center justify-between shadow-md z-10">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-white font-bold animate-pulse">emergency</span>
+<span class="font-extrabold text-sm tracking-wide uppercase text-white">Red - URGENT Referral</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-xs font-black text-urgent-red bg-white px-2 py-0.5 rounded-full">Score: 88</span>
+<span class="material-symbols-outlined text-white text-xl">gpp_maybe</span>
+</div>
+</div>
+<header class="flex items-center justify-between p-4 bg-white border-b border-slate-100">
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-deep-blue">
+<span class="material-symbols-outlined font-bold">arrow_back_ios_new</span>
+</button>
+<div class="text-center">
+<h1 class="text-xl font-extrabold text-deep-blue leading-tight">VHT Co-Pilot</h1>
+<p class="text-[10px] text-primary font-black uppercase tracking-widest">Decision Support</p>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-deep-blue">
+<span class="material-symbols-outlined font-bold">map</span>
+</button>
+</header>
+<main class="flex-1 flex flex-col overflow-hidden">
+<div class="flex-1 p-4 flex flex-col gap-4 overflow-y-auto">
+<div class="flex flex-col gap-1">
+<p class="text-xs font-black text-urgent-red uppercase tracking-wider">Emergency Instructions</p>
+<h2 class="text-xl font-extrabold text-deep-blue leading-tight">Omulambiki gw'obujjanjabi obusooka</h2>
+</div>
+<div class="grid grid-cols-1 gap-3">
+<div class="bg-red-50 border-l-4 border-urgent-red p-4 rounded-r-xl flex items-start gap-4">
+<div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm shrink-0">
+<span class="material-symbols-outlined text-urgent-red text-3xl font-bold">air</span>
+</div>
+<div>
+<p class="font-bold text-deep-blue text-sm uppercase">Airway / Okussa</p>
+<p class="text-slate-600 text-sm">Ensure patient is sitting upright. Clear any obstructions.</p>
+</div>
+</div>
+<div class="bg-red-50 border-l-4 border-urgent-red p-4 rounded-r-xl flex items-start gap-4">
+<div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm shrink-0">
+<span class="material-symbols-outlined text-urgent-red text-3xl font-bold">water_drop</span>
+</div>
+<div>
+<p class="font-bold text-deep-blue text-sm uppercase">Hydration / Okunywa amazzi</p>
+<p class="text-slate-600 text-sm">Small sips of clean water if patient is conscious.</p>
+</div>
+</div>
+<div class="bg-red-50 border-l-4 border-urgent-red p-4 rounded-r-xl flex items-start gap-4">
+<div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm shrink-0">
+<span class="material-symbols-outlined text-urgent-red text-3xl font-bold">thermometer_gain</span>
+</div>
+<div>
+<p class="font-bold text-deep-blue text-sm uppercase">Fever / Omusujja</p>
+<p class="text-slate-600 text-sm">Use cool damp cloth on forehead and armpits.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-slate-50 border-t-2 border-slate-200 p-6 flex flex-col gap-6">
+<div class="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">location_on</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-400 uppercase">Nearest HCIV</p>
+<p class="font-bold text-deep-blue">Mukono Health Centre IV</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-lg font-black text-primary">18 min</p>
+<p class="text-[10px] text-slate-400 font-bold">ESTIMATED TRAVEL</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 px-1">
+<div class="flex justify-between text-[10px] font-bold text-slate-500 tracking-widest uppercase">
+<span>GPS Coordinates</span>
+<span>Lat: 0.3541° N, Long: 32.7387° E</span>
+</div>
+<button class="w-full bg-urgent-red text-white py-5 rounded-2xl shadow-xl shadow-red-200 flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform">
+<span class="text-xl font-black uppercase tracking-tight">Confirm Referral to HCIV</span>
+<span class="text-sm font-medium opacity-90">Kakasanya okusindika ku ddwaliro</span>
+</button>
+</div>
+</div>
+</main>
+<nav class="border-t border-slate-100 bg-white flex justify-around items-center px-4 py-4">
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">medical_services</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Intake</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined font-black">assignment_turned_in</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Action</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">group</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Patients</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">settings</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Profile</span>
+</a>
+</nav>
+
+</body></html>

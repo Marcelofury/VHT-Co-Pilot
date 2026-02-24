@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Agent Monitoring Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        :root {
+            --health-blue: #007BFF;
+            --deep-blue: #003366;
+            --triage-yellow: #FFD700;
+            --ai-pulse: #10B981;
+            --soft-blue-border: #E3F2FD;
+            --card-bg: #FFFFFF;
+        }
+        @layer base {
+            body {
+                @apply font-display text-[#003366] bg-slate-50 antialiased;
+            }
+        }
+        .pulse-ring {
+            position: relative;
+        }
+        .pulse-ring::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: var(--ai-pulse);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007BFF",
+                        "deep-blue": "#003366",
+                        "triage-yellow": "#FFD700",
+                        "ai-green": "#10B981"
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="h-screen overflow-hidden flex flex-col">
+<div class="bg-[var(--triage-yellow)] px-4 py-2 flex items-center justify-between shadow-sm border-b border-black/5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-black font-bold text-lg">warning</span>
+<span class="font-bold text-[11px] tracking-wide uppercase text-black">Community Alert: Moderate Malaria Risk</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-black text-black bg-black/10 px-2 py-0.5 rounded-full">Zone 4</span>
+</div>
+</div>
+<header class="p-6 bg-white border-b border-slate-100">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h1 class="text-2xl font-extrabold text-deep-blue">Co-Pilot Monitoring</h1>
+<p class="text-primary font-bold text-sm">VHT Autonomous Agent</p>
+</div>
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-[var(--soft-blue-border)] shadow-sm">
+<img alt="VHT Portrait" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtp_U5PL4qyYVLBYcLP6mnpdfa2OmV7W5NxEQofJK2REIsiiOLduzLlZAClz_ZppAi787JLTBJPCKnF6epuGLHlG5W87qyhpkLGKo7Kyf8G8ILzxv2Ucju92aBC8aVpq04NEh81Q1lXTtsskXkPqFDzbzF1beXwwkJOl_qBzTMb18XiAkpEIQ3tHaZHYnLq_L4x5bZYPe0cm8kMlNYN-8KLk4C-GTKL16dmak95VewHolzzmesMigAzcJaH0vdp9w5efRxc9toYog"/>
+</div>
+</div>
+<div class="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+<div class="bg-[#F0F7FF] px-4 py-3 rounded-xl flex-shrink-0 border border-[var(--soft-blue-border)] min-w-[100px]">
+<p class="text-[10px] font-bold text-primary uppercase">Agent Sync</p>
+<p class="text-xl font-black text-deep-blue">Live</p>
+</div>
+<div class="bg-[#F2FDF5] px-4 py-3 rounded-xl flex-shrink-0 border border-green-100 min-w-[100px]">
+<p class="text-[10px] font-bold text-green-700 uppercase">AI Actions</p>
+<p class="text-xl font-black text-green-800">24</p>
+</div>
+<div class="bg-[#FFF9E6] px-4 py-3 rounded-xl flex-shrink-0 border border-yellow-100 min-w-[100px]">
+<p class="text-[10px] font-bold text-yellow-700 uppercase">Alerts</p>
+<p class="text-xl font-black text-yellow-800">02</p>
+</div>
+</div>
+</header>
+<main class="flex-1 p-4 overflow-y-auto space-y-4">
+<div class="bg-deep-blue rounded-3xl p-6 shadow-xl relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4">
+<div class="pulse-ring w-3 h-3 bg-ai-green rounded-full shadow-[0_0_10px_rgba(16,185,129,0.8)]"></div>
+</div>
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20">
+<span class="material-symbols-outlined text-white text-3xl">psychology</span>
+</div>
+<div>
+<h3 class="text-white font-bold text-xl">VHT Co-Pilot</h3>
+<p class="text-ai-green font-bold text-xs uppercase tracking-widest">Active Monitoring</p>
+</div>
+</div>
+<div class="bg-white/5 rounded-xl p-4 border border-white/10">
+<p class="text-white/80 text-sm leading-relaxed">
+<span class="font-bold text-white">Status:</span> Listening for community health signals. Ready to assist with diagnosis and triage autonomously.
+                    </p>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 bg-white/10 hover:bg-white/20 py-2 rounded-lg text-white text-[10px] font-bold uppercase tracking-wider transition-colors">Settings</button>
+<button class="flex-1 bg-primary py-2 rounded-lg text-white text-[10px] font-bold uppercase tracking-wider">Override</button>
+</div>
+</div>
+</div>
+<section>
+<div class="flex justify-between items-center mb-4 px-1">
+<h4 class="text-xs font-black text-slate-400 uppercase tracking-widest">Recent AI Decisions</h4>
+<button class="text-[10px] font-bold text-primary uppercase">View History</button>
+</div>
+<div class="space-y-3">
+<div class="bg-white p-4 rounded-2xl flex items-start gap-4 border border-slate-100 shadow-sm">
+<div class="bg-red-50 p-2 rounded-xl">
+<span class="material-symbols-outlined text-red-500 text-xl">emergency_share</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<p class="text-sm font-bold text-deep-blue">Kato J. Referred to Hospital</p>
+<span class="text-[10px] font-bold text-slate-400">2m ago</span>
+</div>
+<p class="text-[11px] text-slate-500 mt-1 leading-snug">Autonomous triage detected acute respiratory distress. Hospital notified.</p>
+<div class="mt-2 flex gap-2">
+<span class="text-[9px] bg-slate-100 px-2 py-0.5 rounded font-bold uppercase text-slate-500">Urgent</span>
+<span class="text-[9px] bg-blue-50 px-2 py-0.5 rounded font-bold uppercase text-primary">Referral Code: #V881</span>
+</div>
+</div>
+</div>
+<div class="bg-white p-4 rounded-2xl flex items-start gap-4 border border-slate-100 shadow-sm">
+<div class="bg-green-50 p-2 rounded-xl">
+<span class="material-symbols-outlined text-green-500 text-xl">pill</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<p class="text-sm font-bold text-deep-blue">Mukasa L. Follow-up Scheduled</p>
+<span class="text-[10px] font-bold text-slate-400">15m ago</span>
+</div>
+<p class="text-[11px] text-slate-500 mt-1 leading-snug">Malaria treatment course Day 2 check-in completed via voice link.</p>
+</div>
+</div>
+<div class="bg-white p-4 rounded-2xl flex items-start gap-4 border border-slate-100 shadow-sm opacity-80">
+<div class="bg-blue-50 p-2 rounded-xl">
+<span class="material-symbols-outlined text-primary text-xl">analytics</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<p class="text-sm font-bold text-deep-blue">Zone 4 Risk Assessment</p>
+<span class="text-[10px] font-bold text-slate-400">1h ago</span>
+</div>
+<p class="text-[11px] text-slate-500 mt-1 leading-snug">Updated community risk map based on 14 new intake trends.</p>
+</div>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-2 gap-3 pt-2">
+<button class="bg-white border border-slate-100 p-4 rounded-2xl flex flex-col items-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-primary">add_to_photos</span>
+<span class="text-[11px] font-bold text-deep-blue uppercase tracking-tight">Manual Intake</span>
+</button>
+<button class="bg-white border border-slate-100 p-4 rounded-2xl flex flex-col items-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-slate-400">group</span>
+<span class="text-[11px] font-bold text-deep-blue uppercase tracking-tight">My Patients</span>
+</button>
+</div>
+</main>
+<div class="bg-white border-t border-slate-100 px-4 py-2 flex items-center justify-center gap-2">
+<span class="w-2 h-2 bg-green-500 rounded-full"></span>
+<p class="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Last AI Sync: 2 minutes ago</p>
+</div>
+<nav class="border-t border-slate-100 bg-white flex justify-around items-center px-4 py-4 pb-8">
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined font-black">dashboard</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Monitor</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">medical_services</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Intake</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">history_edu</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Logs</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">sync</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Sync</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">person</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Profile</span>
+</a>
+</nav>
+
+</body></html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VHT Co-Pilot Intake Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        :root {
+            --health-blue: #007BFF;
+            --deep-blue: #003366;
+            --triage-yellow: #FFD700;
+            --soft-blue-border: #E3F2FD;
+        }
+        @layer base {
+            body {
+                @apply font-display text-[#003366] bg-white antialiased;
+            }
+        }
+        .waveform-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 120px;
+        }
+        .wave-bar {
+            width: 8px;
+            background-color: var(--health-blue);
+            border-radius: 99px;
+            min-height: 4px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007BFF",
+                        "deep-blue": "#003366",
+                        "triage-yellow": "#FFD700",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="h-screen overflow-hidden flex flex-col">
+<div class="bg-[var(--triage-yellow)] px-4 py-3 flex items-center justify-between shadow-sm border-b border-black/5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-black font-bold">warning</span>
+<span class="font-extrabold text-sm tracking-wide uppercase text-black">Real-time Triage: Moderate</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-xs font-black text-black bg-black/10 px-2 py-0.5 rounded-full">Score: 40</span>
+<span class="material-symbols-outlined text-black text-xl">cloud_done</span>
+</div>
+</div>
+<header class="flex items-center justify-between p-4 bg-white border-b border-slate-100">
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-deep-blue">
+<span class="material-symbols-outlined font-bold">arrow_back_ios_new</span>
+</button>
+<div class="text-center">
+<h1 class="text-xl font-extrabold text-deep-blue leading-tight">VHT Co-Pilot</h1>
+<p class="text-[10px] text-primary font-black uppercase tracking-widest">Active Intake Session</p>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-deep-blue">
+<span class="material-symbols-outlined font-bold">info</span>
+</button>
+</header>
+<main class="flex-1 flex flex-col p-4 gap-6 overflow-y-auto">
+<div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-[#E3F2FD]">
+<div class="flex flex-col gap-6">
+<div class="space-y-1">
+<p class="text-xs font-black text-primary uppercase tracking-wider">English</p>
+<h2 class="text-2xl font-bold text-deep-blue leading-tight">Symptom: High Fever</h2>
+</div>
+<div class="h-px bg-[#E3F2FD] w-full"></div>
+<div class="space-y-1">
+<p class="text-xs font-black text-primary uppercase tracking-wider">Luganda</p>
+<h2 class="text-2xl font-bold text-deep-blue leading-tight">Omusujja ogw'amaanyi</h2>
+</div>
+</div>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center gap-8 py-4">
+<div class="text-center space-y-1">
+<p class="text-primary font-bold">Voice Capture Active</p>
+<p class="text-slate-500 text-sm font-medium">Listening for patient symptoms...</p>
+</div>
+<div class="waveform-container w-full max-w-xs">
+<div class="wave-bar h-8 opacity-30"></div>
+<div class="wave-bar h-16 opacity-50"></div>
+<div class="wave-bar h-24 opacity-70"></div>
+<div class="wave-bar h-32"></div>
+<div class="wave-bar h-20"></div>
+<div class="wave-bar h-28"></div>
+<div class="wave-bar h-36"></div>
+<div class="wave-bar h-24"></div>
+<div class="wave-bar h-12 opacity-70"></div>
+<div class="wave-bar h-20 opacity-50"></div>
+<div class="wave-bar h-10 opacity-30"></div>
+</div>
+<div class="flex items-center gap-4 bg-[#F0F7FF] px-5 py-3 rounded-full border border-[#E3F2FD]">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm">
+<img alt="Patient portrait" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtp_U5PL4qyYVLBYcLP6mnpdfa2OmV7W5NxEQofJK2REIsiiOLduzLlZAClz_ZppAi787JLTBJPCKnF6epuGLHlG5W87qyhpkLGKo7Kyf8G8ILzxv2Ucju92aBC8aVpq04NEh81Q1lXTtsskXkPqFDzbzF1beXwwkJOl_qBzTMb18XiAkpEIQ3tHaZHYnLq_L4x5bZYPe0cm8kMlNYN-8KLk4C-GTKL16dmak95VewHolzzmesMigAzcJaH0vdp9w5efRxc9toYog"/>
+</div>
+<div>
+<p class="text-sm font-bold text-deep-blue">Nalubega Sarah</p>
+<p class="text-[10px] font-bold text-primary opacity-80 uppercase">Patient ID: #VHT-8821</p>
+</div>
+</div>
+</div>
+</main>
+<div class="bg-white px-6 pt-6 pb-10 flex flex-col items-center gap-6 shadow-[0_-10px_30px_rgba(0,0,0,0.03)]">
+<div class="relative">
+<div class="absolute inset-0 bg-primary/20 rounded-full animate-ping scale-150"></div>
+<div class="absolute inset-0 bg-primary/10 rounded-full animate-pulse scale-125"></div>
+<button class="relative w-24 h-24 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl shadow-primary/40 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-4xl font-bold">mic</span>
+</button>
+</div>
+<div class="text-center">
+<p class="text-xl font-extrabold text-deep-blue">Hold to Speak</p>
+<p class="text-slate-500 text-sm font-bold">Kwata wano okwogera</p>
+</div>
+</div>
+<nav class="border-t border-slate-100 bg-white flex justify-around items-center px-4 py-4">
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined font-black">medical_services</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Intake</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">group</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Patients</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">sync</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Sync</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-300" href="#">
+<span class="material-symbols-outlined font-bold">settings</span>
+<span class="text-[10px] font-black uppercase tracking-wider">Profile</span>
+</a>
+</nav>
+
+</body></html>
