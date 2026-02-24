@@ -16,6 +16,8 @@ import { useAppStore } from "../stores/appStore";
 interface VoiceIntakeScreenProps {
   onBack?: () => void;
   onNavigate?: (screen: string) => void;
+  patientId?: string;
+  onTriageComplete?: (triageData: { urgencyLevel: string }) => void;
 }
 
 export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({

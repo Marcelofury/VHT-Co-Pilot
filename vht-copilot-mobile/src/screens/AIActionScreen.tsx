@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
-import { useAppStore } from "../stores/appStore";
 
 interface AIActionScreenProps {
   onBack?: () => void;
@@ -35,8 +34,6 @@ export const AIActionScreen: React.FC<AIActionScreenProps> = ({
   onPauseAction,
   onNavigate,
 }) => {
-  const { currentPatient } = useAppStore();
-
   // Animation values
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const spinAnim = useRef(new Animated.Value(0)).current;

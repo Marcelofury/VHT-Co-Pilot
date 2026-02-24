@@ -16,6 +16,7 @@ interface EmergencyDecisionScreenProps {
   onBack?: () => void;
   onConfirmReferral?: () => void;
   onNavigate?: (screen: string) => void;
+  patientId?: string;
 }
 
 interface FirstAidInstruction {

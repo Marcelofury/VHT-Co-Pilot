@@ -16,6 +16,8 @@ import { useAppStore } from "../stores/appStore";
 interface DashboardScreenProps {
   onNavigate?: (screen: string) => void;
   onStartIntake?: () => void;
+  onQuickAction?: (action: string) => void;
+  onViewPatient?: (patientId: string) => void;
 }
 
 interface RecentActivity {
