@@ -13,6 +13,7 @@ interface AppState {
   // VHT Member State
   currentUser: VHTMember | null;
   setCurrentUser: (user: VHTMember | null) => void;
+  clearAuth: () => void;
 
   // Patient State
   patients: Patient[];
@@ -71,6 +72,15 @@ export const useAppStore = create<AppState>((set) => ({
   // VHT Member
   currentUser: null,
   setCurrentUser: (user) => set({ currentUser: user }),
+  clearAuth: () => set({ 
+    currentUser: null,
+    patients: [],
+    selectedPatient: null,
+    activeReferral: null,
+    referralHistory: [],
+    aiActions: [],
+    syncRecords: [],
+  }),
 
   // Patients
   patients: [],

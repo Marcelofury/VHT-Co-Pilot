@@ -1,0 +1,38 @@
+# VHT Co-Pilot Backend - Requirements
+# Core packages for development (SQLite) and production (PostgreSQL)
+
+# Django Core
+Django==5.0.2
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+djangorestframework-simplejwt==5.3.1
+
+# AI/ML Stack (install when ready)
+openai==1.12.0
+langchain==0.1.7
+langchain-openai==0.0.5
+chromadb==0.4.22
+
+# Geospatial
+geopy==2.4.1
+
+# Utilities
+python-dotenv==1.0.1
+pyyaml==6.0.1
+requests==2.31.0
+python-multipart==0.0.9
+
+# Development & Testing
+pytest==8.0.0
+pytest-django==4.8.0
+
+# Optional packages (uncomment when needed):
+# psycopg2-binary==2.9.9  # PostgreSQL for production
+# celery==5.3.6  # Async task processing
+# redis==5.0.1  # Task queue backend
+# pydub==0.25.1  # Audio format conversion
+# sentence-transformers==2.3.1  # Local embeddings (large download)
+
+# SMS (optional - uncomment when needed)
+# twilio==9.0.0
+# africastalking==1.2.5

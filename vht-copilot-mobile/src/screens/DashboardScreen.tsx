@@ -51,6 +51,16 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 }) => {
   const { currentUser, lastSyncTime } = useAppStore();
 
+  const handleStartIntake = () => {
+    console.log('Start Intake button pressed');
+    onStartIntake?.();
+  };
+
+  const handleNavigate = (screen: string) => {
+    console.log('Navigate to:', screen);
+    onNavigate?.(screen);
+  };
+
   const getSyncTimeString = () => {
     if (lastSyncTime) {
       const now = new Date();
@@ -134,7 +144,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         <View style={styles.actionGrid}>
           <TouchableOpacity
             style={[styles.actionCard, styles.actionCardPrimary]}
-            onPress={onStartIntake}
+            onPress={handleStartIntake}
             activeOpacity={0.9}
           >
             <View style={styles.actionIconPrimary}>
@@ -154,7 +164,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
           <TouchableOpacity
             style={styles.actionCard}
-            onPress={() => onNavigate?.("referrals")}
+            onPress={() => handleNavigate("referrals")}
             activeOpacity={0.8}
           >
             <View style={styles.actionIconRed}>
@@ -172,7 +182,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
           <TouchableOpacity
             style={styles.actionCard}
-            onPress={() => onNavigate?.("patients")}
+            onPress={() => handleNavigate("patients")}
             activeOpacity={0.8}
           >
             <View style={styles.actionIconBlue}>
@@ -186,7 +196,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
           <TouchableOpacity
             style={styles.actionCard}
-            onPress={() => onNavigate?.("sync")}
+            onPress={() => handleNavigate("sync")}
             activeOpacity={0.8}
           >
             <View style={styles.actionIconGreen}>

@@ -12,18 +12,25 @@ import {
   VoiceIntakeScreen,
   EmergencyDecisionScreen,
   DashboardScreen,
+  HospitalDashboardScreen,
   ProfileScreen,
   SyncScreen,
   AIActionScreen,
   AIMonitoringScreen,
+  LoginScreen,
+  RegisterScreen,
 } from "../screens";
 
 // Define navigation types
 export type RootStackParamList = {
+  Auth: undefined;
   Main: undefined;
+  HospitalMain: undefined;
   VoiceIntake: { patientId?: string };
   EmergencyDecision: { patientId: string };
   AIAction: { referralId?: string };
+  Login: undefined;
+  Register: undefined;
 };
 
 export type MainTabParamList = {
@@ -34,10 +41,31 @@ export type MainTabParamList = {
   Profile: undefined;
 };
 
+export type HospitalTabParamList = {
+  HospitalDashboard: undefined;
+  Profile: undefined;
+};
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
+const HospitalTab = createBottomTabNavigator<HospitalTabParamList>();
 
-// Bottom Tab Navigator
+// Hospital Tab Navigator (for hospital staff)
+const HospitalTabNavigator: React.FC = () => {
+  return (
+    <HospitalTab.Navigator
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <HospitalTab.Screen name="HospitalDashboard" component={HospitalDashboardScreenWrapper} />
+      <HospitalTab.Screen name="Profile" component={ProfileScreenWrapper} />
+    </HospitalTab.Navigator>
+  );
+};
+
+// VHT Tab Navigator (for VHT personnel)
 const MainTabNavigator: React.FC = () => {
   return (
     <Tab.Navigator
@@ -59,6 +87,9 @@ const MainTabNavigator: React.FC = () => {
 const DashboardScreenWrapper: React.FC<any> = ({ navigation }) => {
   return (
     <DashboardScreen
+      onStartIntake={() => {
+        navigation.navigate("VoiceIntake", {});
+      }}
       onQuickAction={(action) => {
         if (action === "intake") {
           navigation.navigate("VoiceIntake", {});
@@ -88,6 +119,30 @@ const DashboardScreenWrapper: React.FC<any> = ({ navigation }) => {
             navigation.navigate("Profile");
             break;
         }
+      }}
+    />
+  );
+};
+
+const HospitalDashboardScreenWrapper: React.FC<any> = ({ navigation }) => {
+  const { clearAuth } = useAppStore();
+  
+  return (
+    <HospitalDashboardScreen
+      onViewReferral={(referralId) => {
+        console.log("View referral:", referralId);
+        // TODO: Navigate to referral detail screen
+      }}
+      onNavigate={(screen) => {
+        switch (screen) {
+          case "profile":
+            navigation.navigate("Profile");
+            break;
+        }
+      }}
+      onLogout={() => {
+        clearAuth();
+        navigation.replace("Login");
       }}
     />
   );
@@ -285,17 +340,58 @@ const AIActionScreenWrapper: React.FC<any> = ({ navigation }) => {
   );
 };
 
+// Auth Screen Wrappers
+const LoginScreenWrapper: React.FC<any> = ({ navigation }) => {
+  const { setCurrentUser } = useAppStore();
+  
+  return (
+    <LoginScreen
+      onLoginSuccess={() => {
+        // Check user role and navigate accordingly
+        const user = useAppStore.getState().currentUser;
+        console.log("Login successful, user role:", user?.role);
+        
+        if (user?.role === 'HOSPITAL' || user?.role === 'HOSPITAL_STAFF') {
+          navigation.replace("HospitalMain");
+        } else {
+          navigation.replace("Main");
+        }
+      }}
+      onNavigateToRegister={() => {
+        navigation.navigate("Register");
+      }}
+    />
+  );
+};
+
+const RegisterScreenWrapper: React.FC<any> = ({ navigation }) => {
+  return (
+    <RegisterScreen
+      onRegisterSuccess={() => {
+        navigation.replace("Login");
+      }}
+      onNavigateToLogin={() => {
+        navigation.navigate("Login");
+      }}
+    />
+  );
+};
+
 // Main App Navigator
 export const AppNavigator: React.FC = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator
+        initialRouteName="Login"
         screenOptions={{
           headerShown: false,
           animation: "slide_from_right",
         }}
       >
+        <Stack.Screen name="Login" component={LoginScreenWrapper} />
+        <Stack.Screen name="Register" component={RegisterScreenWrapper} />
         <Stack.Screen name="Main" component={MainTabNavigator} />
+        <Stack.Screen name="HospitalMain" component={HospitalTabNavigator} />
         <Stack.Screen name="VoiceIntake" component={VoiceIntakeScreenWrapper} />
         <Stack.Screen
           name="EmergencyDecision"
