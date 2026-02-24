@@ -242,34 +242,6 @@ export const PatientListScreen: React.FC<PatientListScreenProps> = ({
       >
         <MaterialIcons name="person-add" size={28} color={COLORS.white} />
       </TouchableOpacity>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate?.("intake")}
-        >
-          <MaterialIcons
-            name="medical-services"
-            size={24}
-            color={COLORS.slate300}
-          />
-          <Text style={styles.navLabel}>Intake</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="group" size={24} color={COLORS.primary} />
-          <Text style={[styles.navLabel, styles.navLabelActive]}>Patients</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate?.("sync")}
-        >
-          <MaterialIcons name="sync" size={24} color={COLORS.slate300} />
-          <Text style={styles.navLabel}>Sync</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };
@@ -440,7 +412,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: "absolute",
-    bottom: 100,
+    bottom: 24,
     right: 24,
     width: 64,
     height: 64,
@@ -453,30 +425,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-  },
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.slate100,
-  },
-  navItem: {
-    alignItems: "center",
-    gap: 4,
-  },
-  navLabel: {
-    fontSize: 10,
-    fontWeight: "900",
-    color: COLORS.slate300,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  navLabelActive: {
-    color: COLORS.primary,
   },
 });
 

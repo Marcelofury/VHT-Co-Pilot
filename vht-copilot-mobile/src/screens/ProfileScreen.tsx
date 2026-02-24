@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -9,10 +9,10 @@ import {
   SafeAreaView,
   StatusBar,
   Switch,
-} from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS } from '../constants/colors';
-import { useAppStore } from '../stores/appStore';
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { COLORS } from "../constants/colors";
+import { useAppStore } from "../stores/appStore";
 
 interface ProfileScreenProps {
   onBack?: () => void;
@@ -34,7 +34,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   } = useAppStore();
 
   const handleLanguageToggle = () => {
-    setLanguage(language === 'lg' ? 'en' : 'lg');
+    setLanguage(language === "lg" ? "en" : "lg");
   };
 
   return (
@@ -52,27 +52,37 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.profileRow}>
             <Image
               source={{
-                uri: currentUser?.photoUrl || 'https://randomuser.me/api/portraits/men/32.jpg',
+                uri:
+                  currentUser?.photoUrl ||
+                  "https://randomuser.me/api/portraits/men/32.jpg",
               }}
               style={styles.profileAvatar}
             />
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>
-                {currentUser?.name || 'Musa Kanda'}
+                {currentUser?.name || "Musa Kanda"}
               </Text>
               <Text style={styles.profileId}>
-                VHT ID: #{currentUser?.vhtId || 'UG-8821-KMP'}
+                VHT ID: #{currentUser?.vhtId || "UG-8821-KMP"}
               </Text>
               <View style={styles.locationRow}>
-                <MaterialIcons name="location-on" size={14} color={COLORS.slate500} />
+                <MaterialIcons
+                  name="location-on"
+                  size={14}
+                  color={COLORS.slate500}
+                />
                 <Text style={styles.locationText}>
-                  {currentUser?.village || 'Nakaseke Village'}, {currentUser?.region || 'Central'}
+                  {currentUser?.village || "Nakaseke Village"},{" "}
+                  {currentUser?.region || "Central"}
                 </Text>
               </View>
             </View>
@@ -82,13 +92,17 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         {/* Preferences Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferences / Okulonda</Text>
-          
+
           <View style={styles.settingsCard}>
             {/* Language Setting */}
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIcon, styles.settingIconBlue]}>
-                  <MaterialIcons name="translate" size={20} color={COLORS.primary} />
+                  <MaterialIcons
+                    name="translate"
+                    size={20}
+                    color={COLORS.primary}
+                  />
                 </View>
                 <View>
                   <Text style={styles.settingLabel}>Primary Language</Text>
@@ -99,14 +113,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 <TouchableOpacity
                   style={[
                     styles.languageButton,
-                    language === 'lg' && styles.languageButtonActive,
+                    language === "lg" && styles.languageButtonActive,
                   ]}
-                  onPress={() => setLanguage('lg')}
+                  onPress={() => setLanguage("lg")}
                 >
                   <Text
                     style={[
                       styles.languageButtonText,
-                      language === 'lg' && styles.languageButtonTextActive,
+                      language === "lg" && styles.languageButtonTextActive,
                     ]}
                   >
                     Luganda
@@ -115,14 +129,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 <TouchableOpacity
                   style={[
                     styles.languageButton,
-                    language === 'en' && styles.languageButtonActive,
+                    language === "en" && styles.languageButtonActive,
                   ]}
-                  onPress={() => setLanguage('en')}
+                  onPress={() => setLanguage("en")}
                 >
                   <Text
                     style={[
                       styles.languageButtonText,
-                      language === 'en' && styles.languageButtonTextActive,
+                      language === "en" && styles.languageButtonTextActive,
                     ]}
                   >
                     ENG
@@ -137,7 +151,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIcon, styles.settingIconBlue]}>
-                  <MaterialIcons name="volume-up" size={20} color={COLORS.primary} />
+                  <MaterialIcons
+                    name="volume-up"
+                    size={20}
+                    color={COLORS.primary}
+                  />
                 </View>
                 <Text style={styles.settingLabel}>Voice Feedback</Text>
               </View>
@@ -154,7 +172,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         {/* Offline Access Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Offline Access & Tools</Text>
-          
+
           <View style={styles.settingsCard}>
             {/* Offline Maps */}
             <TouchableOpacity style={styles.settingRow} activeOpacity={0.7}>
@@ -164,12 +182,21 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 </View>
                 <View>
                   <Text style={styles.settingLabel}>Offline Village Maps</Text>
-                  <Text style={[styles.settingSubtext, { color: COLORS.successGreen }]}>
+                  <Text
+                    style={[
+                      styles.settingSubtext,
+                      { color: COLORS.successGreen },
+                    ]}
+                  >
                     124 MB Downloaded
                   </Text>
                 </View>
               </View>
-              <MaterialIcons name="chevron-right" size={24} color={COLORS.slate300} />
+              <MaterialIcons
+                name="chevron-right"
+                size={24}
+                color={COLORS.slate300}
+              />
             </TouchableOpacity>
 
             <View style={styles.settingDivider} />
@@ -178,14 +205,22 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <TouchableOpacity style={styles.settingRow} activeOpacity={0.7}>
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIcon, styles.settingIconBlue]}>
-                  <MaterialIcons name="school" size={20} color={COLORS.primary} />
+                  <MaterialIcons
+                    name="school"
+                    size={20}
+                    color={COLORS.primary}
+                  />
                 </View>
                 <View>
                   <Text style={styles.settingLabel}>Training Resources</Text>
                   <Text style={styles.settingSubtext}>8 modules available</Text>
                 </View>
               </View>
-              <MaterialIcons name="chevron-right" size={24} color={COLORS.slate300} />
+              <MaterialIcons
+                name="chevron-right"
+                size={24}
+                color={COLORS.slate300}
+              />
             </TouchableOpacity>
 
             <View style={styles.settingDivider} />
@@ -201,7 +236,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   <Text style={styles.settingSubtext}>Last synced: 2h ago</Text>
                 </View>
               </View>
-              <MaterialIcons name="chevron-right" size={24} color={COLORS.slate300} />
+              <MaterialIcons
+                name="chevron-right"
+                size={24}
+                color={COLORS.slate300}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -209,10 +248,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         {/* Support Section */}
         <View style={styles.supportCard}>
           <View style={styles.supportHeader}>
-            <MaterialIcons name="support-agent" size={32} color={COLORS.primary} />
+            <MaterialIcons
+              name="support-agent"
+              size={32}
+              color={COLORS.primary}
+            />
             <View>
-              <Text style={styles.supportTitle}>Need help, {currentUser?.name?.split(' ')[0] || 'Musa'}?</Text>
-              <Text style={styles.supportSubtext}>Contact the district supervisor</Text>
+              <Text style={styles.supportTitle}>
+                Need help, {currentUser?.name?.split(" ")[0] || "Musa"}?
+              </Text>
+              <Text style={styles.supportSubtext}>
+                Contact the district supervisor
+              </Text>
             </View>
           </View>
           <TouchableOpacity style={styles.supportButton} activeOpacity={0.8}>
@@ -220,29 +267,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </TouchableOpacity>
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={() => onNavigate?.('intake')}>
-          <MaterialIcons name="medical-services" size={24} color={COLORS.slate300} />
-          <Text style={styles.navLabel}>Intake</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem} onPress={() => onNavigate?.('patients')}>
-          <MaterialIcons name="group" size={24} color={COLORS.slate300} />
-          <Text style={styles.navLabel}>Patients</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem} onPress={() => onNavigate?.('reports')}>
-          <MaterialIcons name="description" size={24} color={COLORS.slate300} />
-          <Text style={styles.navLabel}>Reports</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="person" size={24} color={COLORS.primary} />
-          <Text style={[styles.navLabel, styles.navLabelActive]}>Profile</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };
@@ -257,9 +281,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 24,
     paddingVertical: 16,
     backgroundColor: COLORS.white,
@@ -268,12 +292,12 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: "800",
     color: COLORS.deepBlue,
   },
   signOutText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.primary,
   },
   scrollContent: {
@@ -288,8 +312,8 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.slate100,
   },
   profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 20,
   },
   profileAvatar: {
@@ -305,26 +329,26 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.deepBlue,
     marginBottom: 4,
   },
   profileId: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.primary,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 8,
   },
   locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   locationText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.slate500,
   },
   section: {
@@ -333,9 +357,9 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: "900",
     color: COLORS.slate400,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 2,
     marginLeft: 4,
   },
@@ -344,18 +368,18 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: COLORS.slate100,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
     minHeight: 64,
   },
   settingLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     flex: 1,
   },
@@ -363,20 +387,20 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   settingIconBlue: {
     backgroundColor: COLORS.primaryLight,
   },
   settingLabel: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.deepBlue,
   },
   settingSubtext: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
     color: COLORS.slate500,
     marginTop: 2,
   },
@@ -386,7 +410,7 @@ const styles = StyleSheet.create({
     marginLeft: 68,
   },
   languageToggle: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: COLORS.slate100,
     borderRadius: 8,
     padding: 4,
@@ -399,7 +423,7 @@ const styles = StyleSheet.create({
   },
   languageButtonActive: {
     backgroundColor: COLORS.white,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -407,7 +431,7 @@ const styles = StyleSheet.create({
   },
   languageButtonText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.slate400,
   },
   languageButtonTextActive: {
@@ -420,17 +444,17 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     borderWidth: 1,
-    borderColor: 'rgba(0, 123, 255, 0.1)',
+    borderColor: "rgba(0, 123, 255, 0.1)",
     gap: 16,
   },
   supportHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 16,
   },
   supportTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.deepBlue,
   },
   supportSubtext: {
@@ -443,36 +467,11 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     borderRadius: 12,
     paddingVertical: 14,
-    alignItems: 'center',
+    alignItems: "center",
   },
   supportButtonText: {
     fontSize: 15,
-    fontWeight: '800',
-    color: COLORS.primary,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingBottom: 32,
-    paddingHorizontal: 16,
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.slate100,
-  },
-  navItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  navLabel: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: COLORS.slate300,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  navLabelActive: {
+    fontWeight: "800",
     color: COLORS.primary,
   },
 });

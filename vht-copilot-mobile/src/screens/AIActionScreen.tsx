@@ -211,42 +211,6 @@ export const AIActionScreen: React.FC<AIActionScreenProps> = ({
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate?.("intake")}
-        >
-          <MaterialIcons
-            name="medical-services"
-            size={24}
-            color={COLORS.slate300}
-          />
-          <Text style={styles.navLabel}>Intake</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="bolt" size={24} color={COLORS.primary} />
-          <Text style={[styles.navLabel, styles.navLabelActive]}>Agency</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate?.("patients")}
-        >
-          <MaterialIcons name="group" size={24} color={COLORS.slate300} />
-          <Text style={styles.navLabel}>Patients</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate?.("profile")}
-        >
-          <MaterialIcons name="settings" size={24} color={COLORS.slate300} />
-          <Text style={styles.navLabel}>Profile</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };
@@ -466,30 +430,6 @@ const styles = StyleSheet.create({
     color: COLORS.slate500,
     textTransform: "uppercase",
     letterSpacing: 1,
-  },
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.slate100,
-  },
-  navItem: {
-    alignItems: "center",
-    gap: 4,
-  },
-  navLabel: {
-    fontSize: 10,
-    fontWeight: "900",
-    color: COLORS.slate300,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  navLabelActive: {
-    color: COLORS.primary,
   },
 });
 
