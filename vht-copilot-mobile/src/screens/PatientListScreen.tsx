@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,64 +9,14 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS, TRIAGE_STATUS } from "../constants/colors";
 import { Patient, TriageLevel } from "../types";
 import { useAppStore } from "../stores/appStore";
-
-// Mock data for patients
-const MOCK_PATIENTS: Patient[] = [
-  {
-    id: "1",
-    vhtCode: "VHT-8821",
-    firstName: "Nalubega",
-    lastName: "Sarah",
-    age: "24",
-    gender: "female",
-    triageLevel: "moderate",
-    lastVisit: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    photoUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "2",
-    vhtCode: "VHT-8845",
-    firstName: "Mukasa",
-    lastName: "David",
-    age: "42",
-    gender: "male",
-    triageLevel: "stable",
-    lastVisit: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "3",
-    vhtCode: "VHT-9012",
-    firstName: "Namono",
-    lastName: "Prossy",
-    age: "8mo",
-    gender: "female",
-    triageLevel: "highRisk",
-    lastVisit: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "4",
-    vhtCode: "VHT-7762",
-    firstName: "Lwanga",
-    lastName: "Joseph",
-    age: "65",
-    gender: "male",
-    triageLevel: "stable",
-    lastVisit: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
+import { patientAPI } from "../services/api";
 
 const getTriageConfig = (level: TriageLevel) => TRIAGE_STATUS[level];
 
@@ -163,9 +113,32 @@ export const PatientListScreen: React.FC<PatientListScreenProps> = ({
   onNavigate,
 }) => {
   const [searchQuery, setSearchQuery] = React.useState("");
-  const { selectPatient } = useAppStore();
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const { patients, setPatients, selectPatient } = useAppStore();
 
-  const filteredPatients = MOCK_PATIENTS.filter(
+  const loadPatients = async () => {
+    try {
+      const patientsData = await patientAPI.getAll();
+      setPatients(patientsData);
+    } catch (error) {
+      console.error("Error loading patients:", error);
+    } finally {
+      setIsLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPatients();
+  }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadPatients();
+  };
+
+  const filteredPatients = patients.filter(
     (patient) =>
       patient.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       patient.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -221,18 +194,38 @@ export const PatientListScreen: React.FC<PatientListScreenProps> = ({
       </View>
 
       {/* Patient List */}
-      <ScrollView
-        style={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {filteredPatients.map((patient) => (
-          <PatientCard
-            key={patient.id}
-            patient={patient}
-            onPress={() => handlePatientPress(patient)}
-          />
-        ))}
-      </ScrollView>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={styles.loadingText}>Loading patients...</Text>
+        </View>
+      ) : filteredPatients.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <MaterialIcons name="people-outline" size={64} color={COLORS.slate300} />
+          <Text style={styles.emptyTitle}>No patients found</Text>
+          <Text style={styles.emptySubtitle}>
+            {searchQuery
+              ? "Try a different search term"
+              : "Tap + to add your first patient"}
+          </Text>
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          {filteredPatients.map((patient) => (
+            <PatientCard
+              key={patient.id}
+              patient={patient}
+              onPress={() => handlePatientPress(patient)}
+            />
+          ))}
+        </ScrollView>
+      )}
 
       {/* Floating Add Button */}
       <TouchableOpacity
@@ -409,6 +402,36 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: COLORS.primary,
     marginLeft: 4,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: COLORS.slate600,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 60,
+    paddingHorizontal: 32,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: COLORS.slate700,
+    marginTop: 16,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: COLORS.slate500,
+    marginTop: 8,
+    textAlign: "center",
   },
   fab: {
     position: "absolute",

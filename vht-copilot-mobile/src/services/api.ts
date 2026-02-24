@@ -329,6 +329,22 @@ export const dashboardAPI = {
 
 export { setAuthToken, clearAuthToken, loadAuthToken };// Authentication & VHT Member API
 export const authAPI = {
+  register: async (data: {
+    username: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+    role: string;
+    vht_id?: string;
+    hospital_code?: string;
+    phone_number?: string;
+    village?: string;
+    district?: string;
+  }): Promise<any> => {
+    const response = await api.post("/auth/register/", data);
+    return response.data;
+  },
+
   login: async (
     username: string,
     password: string,

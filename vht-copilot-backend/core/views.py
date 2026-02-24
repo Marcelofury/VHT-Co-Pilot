@@ -79,6 +79,61 @@ def health_check(request):
     })
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_user(request):
+    """
+    User registration endpoint
+    """
+    data = request.data
+    
+    # Validate required fields
+    required_fields = ['username', 'password', 'first_name', 'last_name', 'role']
+    for field in required_fields:
+        if not data.get(field):
+            return Response(
+                {'detail': f'{field} is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    # Check if username already exists
+    if User.objects.filter(username=data['username']).exists():
+        return Response(
+            {'detail': 'Username already exists'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Create user
+    try:
+        user = User.objects.create_user(
+            username=data['username'],
+            password=data['password'],
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+            email=data.get('email', ''),
+            role=data.get('role', 'VHT'),
+            vht_id=data.get('vht_id', ''),
+            hospital_code=data.get('hospital_code', ''),
+            phone_number=data.get('phone_number', ''),
+            village=data.get('village', ''),
+            district=data.get('district', ''),
+        )
+        
+        serializer = UserSerializer(user)
+        return Response(
+            {
+                'message': 'Registration successful',
+                'user': serializer.data
+            },
+            status=status.HTTP_201_CREATED
+        )
+    except Exception as e:
+        return Response(
+            {'detail': str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def dashboard_stats(request):

@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
+import { authAPI } from "../services/api";
 
 interface RegisterScreenProps {
   onRegisterSuccess?: () => void;
@@ -28,7 +29,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     lastName: "",
     role: "VHT", // VHT or HOSPITAL
     vhtId: "",
-    hospitalId: "",
+    hospitalCode: "",
     phone: "",
     village: "",
     district: "",
@@ -57,7 +58,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       Alert.alert("Error", "Please enter your VHT ID");
       return false;
     }
-    if (formData.role === "HOSPITAL" && !formData.hospitalId.trim()) {
+    if (formData.role === "HOSPITAL" && !formData.hospitalCode.trim()) {
       Alert.alert("Error", "Please enter your Hospital ID");
       return false;
     }
@@ -81,11 +82,19 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
 
     setIsLoading(true);
     try {
-      // TODO: Implement registration API call
-      console.log("Registering user:", formData);
-      
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Call registration API
+      await authAPI.register({
+        username: formData.username,
+        password: formData.password,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        role: formData.role,
+        vht_id: formData.role === "VHT" ? formData.vhtId : undefined,
+        hospital_code: formData.role === "HOSPITAL" ? formData.hospitalCode : undefined,
+        phone_number: formData.phone,
+        village: formData.village,
+        district: formData.district,
+      });
       
       Alert.alert(
         "Success",
@@ -94,7 +103,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       );
     } catch (error: any) {
       console.error("Registration error:", error);
-      Alert.alert("Registration Failed", "Please try again later");
+      const errorMessage = error.response?.data?.detail || error.message || "Registration failed. Please try again.";
+      Alert.alert("Registration Failed", errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -246,8 +256,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 style={styles.input}
                 placeholder="Hospital ID (e.g., HOSP-001)"
                 placeholderTextColor={COLORS.slate400}
-                value={formData.hospitalId}
-                onChangeText={(value) => updateField("hospitalId", value)}
+                value={formData.hospitalCode}
+                onChangeText={(value) => updateField("hospitalCode", value)}
                 autoCapitalize="characters"
                 editable={!isLoading}
               />
@@ -466,7 +476,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: COLORS.slate700,
+    color: COLORS.slate600,
     marginBottom: 12,
     marginTop: 8,
   },

@@ -21,7 +21,7 @@ interface HospitalDashboardScreenProps {
   onLogout?: () => void;
 }
 
-interface Referral {
+interface HospitalReferral {
   id: string;
   patient_name: string;
   vht_code: string;
@@ -38,12 +38,13 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
   onLogout,
 }) => {
   const { currentUser } = useAppStore();
-  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [referrals, setReferrals] = useState<HospitalReferral[]>([]);
   const [stats, setStats] = useState({
     pending: 0,
     in_transit: 0,
     arrived: 0,
     completed: 0,
+    total: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -56,38 +57,18 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
         referralAPI.getHospitalStats(),
       ]);
       
-      setReferrals(referralsData);
+      setReferrals(referralsData as any);
       setStats(statsData);
     } catch (error) {
       console.error("Error loading referrals:", error);
-      // Keep using mock data if API fails for now
-      const mockReferrals: Referral[] = [
-        {
-          id: "1",
-          patient_name: "Nalubega Sarah",
-          vht_code: "VHT-8821",
-          triage_level: "URGENT",
-          triage_score: 9,
-          status: "in_transit",
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "2",
-          patient_name: "Mukasa David",
-          vht_code: "VHT-8845",
-          triage_level: "HIGH_RISK",
-          triage_score: 7,
-          status: "pending",
-          created_at: new Date().toISOString(),
-        },
-      ];
-
-      setReferrals(mockReferrals);
+      // Set empty data on error
+      setReferrals([]);
       setStats({
-        pending: 2,
-        in_transit: 1,
+        pending: 0,
+        in_transit: 0,
         arrived: 0,
-        completed: 5,
+        completed: 0,
+        total: 0,
       });
     } finally {
       setIsLoading(false);
@@ -111,7 +92,7 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
       case "HIGH_RISK":
         return COLORS.triageYellow;
       case "MODERATE":
-        return COLORS.moderateOrange;
+        return COLORS.triageYellow;
       default:
         return COLORS.successGreen;
     }
@@ -122,7 +103,7 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
       case "pending":
         return COLORS.triageYellow;
       case "in_transit":
-        return COLORS.moderateOrange;
+        return COLORS.primary;
       case "arrived":
         return COLORS.primary;
       case "completed":
@@ -153,7 +134,7 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
         <View>
           <Text style={styles.headerTitle}>Hospital Dashboard</Text>
           <Text style={styles.headerSubtitle}>
-            {currentUser?.first_name || "Hospital Staff"}
+            {currentUser?.name || "Hospital Staff"}
           </Text>
         </View>
         <TouchableOpacity onPress={onLogout} style={styles.logoutButton}>
@@ -175,8 +156,8 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
             <Text style={styles.statLabel}>Pending</Text>
           </View>
 
-          <View style={[styles.statCard, { backgroundColor: `${COLORS.moderateOrange}20` }]}>
-            <MaterialIcons name="directions-car" size={32} color={COLORS.moderateOrange} />
+          <View style={[styles.statCard, { backgroundColor: `${COLORS.primary}20` }]}>
+            <MaterialIcons name="directions-car" size={32} color={COLORS.primary} />
             <Text style={styles.statValue}>{stats.in_transit}</Text>
             <Text style={styles.statLabel}>In Transit</Text>
           </View>

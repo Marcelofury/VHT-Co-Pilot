@@ -23,7 +23,7 @@ class User(AbstractUser):
     )
     phone_number = models.CharField(max_length=20, blank=True)
     vht_id = models.CharField(max_length=50, blank=True, unique=True, null=True)
-    hospital_id = models.CharField(max_length=50, blank=True, null=True, help_text="Hospital ID for hospital staff")
+    hospital_code = models.CharField(max_length=50, blank=True, null=True, help_text="Hospital ID code entered during registration")
     hospital = models.ForeignKey('Hospital', on_delete=models.SET_NULL, null=True, blank=True, related_name='staff_members')
     village = models.CharField(max_length=100, blank=True)
     district = models.CharField(max_length=100, blank=True)
