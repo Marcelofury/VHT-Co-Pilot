@@ -1,5 +1,13 @@
-import { create } from 'zustand';
-import { Patient, VHTMember, Referral, AIAction, SyncRecord, CommunityAlert, TriageLevel } from '../types';
+import { create } from "zustand";
+import {
+  Patient,
+  VHTMember,
+  Referral,
+  AIAction,
+  SyncRecord,
+  CommunityAlert,
+  TriageLevel,
+} from "../types";
 
 interface AppState {
   // VHT Member State
@@ -53,9 +61,9 @@ interface AppState {
   setCommunityAlerts: (alerts: CommunityAlert[]) => void;
 
   // Settings
-  language: 'en' | 'lg' | 'sw';
+  language: "en" | "lg" | "sw";
   voiceFeedbackEnabled: boolean;
-  setLanguage: (lang: 'en' | 'lg' | 'sw') => void;
+  setLanguage: (lang: "en" | "lg" | "sw") => void;
   setVoiceFeedback: (enabled: boolean) => void;
 }
 
@@ -68,20 +76,26 @@ export const useAppStore = create<AppState>((set) => ({
   patients: [],
   selectedPatient: null,
   setPatients: (patients) => set({ patients }),
-  addPatient: (patient) => set((state) => ({ patients: [...state.patients, patient] })),
-  updatePatient: (id, updates) => set((state) => ({
-    patients: state.patients.map((p) => (p.id === id ? { ...p, ...updates } : p)),
-  })),
+  addPatient: (patient) =>
+    set((state) => ({ patients: [...state.patients, patient] })),
+  updatePatient: (id, updates) =>
+    set((state) => ({
+      patients: state.patients.map((p) =>
+        p.id === id ? { ...p, ...updates } : p,
+      ),
+    })),
   selectPatient: (patient) => set({ selectedPatient: patient }),
 
   // Voice Intake
   isRecording: false,
   currentSymptoms: [],
   triageScore: 0,
-  currentTriageLevel: 'stable',
+  currentTriageLevel: "stable",
   setIsRecording: (isRecording) => set({ isRecording }),
-  addSymptom: (symptom) => set((state) => ({ currentSymptoms: [...state.currentSymptoms, symptom] })),
-  clearSymptoms: () => set({ currentSymptoms: [], triageScore: 0, currentTriageLevel: 'stable' }),
+  addSymptom: (symptom) =>
+    set((state) => ({ currentSymptoms: [...state.currentSymptoms, symptom] })),
+  clearSymptoms: () =>
+    set({ currentSymptoms: [], triageScore: 0, currentTriageLevel: "stable" }),
   setTriageScore: (score) => set({ triageScore: score }),
   setTriageLevel: (level) => set({ currentTriageLevel: level }),
 
@@ -89,15 +103,20 @@ export const useAppStore = create<AppState>((set) => ({
   activeReferral: null,
   referralHistory: [],
   setActiveReferral: (referral) => set({ activeReferral: referral }),
-  addReferral: (referral) => set((state) => ({ referralHistory: [...state.referralHistory, referral] })),
+  addReferral: (referral) =>
+    set((state) => ({ referralHistory: [...state.referralHistory, referral] })),
 
   // AI Actions
   aiActions: [],
   isAIProcessing: false,
-  addAIAction: (action) => set((state) => ({ aiActions: [action, ...state.aiActions] })),
-  updateAIAction: (id, updates) => set((state) => ({
-    aiActions: state.aiActions.map((a) => (a.id === id ? { ...a, ...updates } : a)),
-  })),
+  addAIAction: (action) =>
+    set((state) => ({ aiActions: [action, ...state.aiActions] })),
+  updateAIAction: (id, updates) =>
+    set((state) => ({
+      aiActions: state.aiActions.map((a) =>
+        a.id === id ? { ...a, ...updates } : a,
+      ),
+    })),
   setAIProcessing: (isProcessing) => set({ isAIProcessing: isProcessing }),
 
   // Sync
@@ -105,7 +124,8 @@ export const useAppStore = create<AppState>((set) => ({
   lastSyncTime: null,
   syncProgress: 98,
   isOnline: true,
-  addSyncRecord: (record) => set((state) => ({ syncRecords: [record, ...state.syncRecords] })),
+  addSyncRecord: (record) =>
+    set((state) => ({ syncRecords: [record, ...state.syncRecords] })),
   setLastSyncTime: (time) => set({ lastSyncTime: time }),
   setSyncProgress: (progress) => set({ syncProgress: progress }),
   setIsOnline: (isOnline) => set({ isOnline }),
@@ -115,7 +135,7 @@ export const useAppStore = create<AppState>((set) => ({
   setCommunityAlerts: (alerts) => set({ communityAlerts: alerts }),
 
   // Settings
-  language: 'en',
+  language: "en",
   voiceFeedbackEnabled: true,
   setLanguage: (lang) => set({ language: lang }),
   setVoiceFeedback: (enabled) => set({ voiceFeedbackEnabled: enabled }),
