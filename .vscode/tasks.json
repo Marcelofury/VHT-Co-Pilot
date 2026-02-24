@@ -1,0 +1,10 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Git Setup - Configure User",
+			"type": "shell",
+			"command": "git config --global user.name \"RockieRaheem\" && git config --global user.email \"kamwangaraheem2050@gmail.com\" && echo '=== Git Configuration Set ===' && git config --global --list | findstr user"
+		}
+	]
+}
