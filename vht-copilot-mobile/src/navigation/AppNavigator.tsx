@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
+import CustomTabBar from "../components/CustomTabBar";
 
 // Import screens
 import {
@@ -40,75 +41,16 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 const MainTabNavigator: React.FC = () => {
   return (
     <Tab.Navigator
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.slate300,
-        tabBarStyle: {
-          backgroundColor: COLORS.white,
-          borderTopColor: COLORS.slate100,
-          paddingTop: 8,
-          paddingBottom: 8,
-          height: 64,
-        },
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: "800",
-          textTransform: "uppercase",
-          letterSpacing: 0.5,
-        },
       }}
     >
-      <Tab.Screen
-        name="Dashboard"
-        component={DashboardScreenWrapper}
-        options={{
-          tabBarLabel: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="home" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Patients"
-        component={PatientListScreenWrapper}
-        options={{
-          tabBarLabel: "Patients",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="group" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Monitoring"
-        component={AIMonitoringScreenWrapper}
-        options={{
-          tabBarLabel: "Monitor",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="psychology" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Sync"
-        component={SyncScreenWrapper}
-        options={{
-          tabBarLabel: "Sync",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="sync" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreenWrapper}
-        options={{
-          tabBarLabel: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="settings" size={size} color={color} />
-          ),
-        }}
-      />
+      <Tab.Screen name="Dashboard" component={DashboardScreenWrapper} />
+      <Tab.Screen name="Patients" component={PatientListScreenWrapper} />
+      <Tab.Screen name="Monitoring" component={AIMonitoringScreenWrapper} />
+      <Tab.Screen name="Sync" component={SyncScreenWrapper} />
+      <Tab.Screen name="Profile" component={ProfileScreenWrapper} />
     </Tab.Navigator>
   );
 };
