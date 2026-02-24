@@ -248,50 +248,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         <View style={styles.syncIndicator} />
         <Text style={styles.syncText}>Last Sync: {getSyncTimeString()}</Text>
       </View>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="home" size={24} color={COLORS.slate300} />
-          <Text style={styles.navLabel}>Home</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate?.("intake")}
-        >
-          <MaterialIcons
-            name="medical-services"
-            size={24}
-            color={COLORS.primary}
-          />
-          <Text style={[styles.navLabel, styles.navLabelActive]}>Intake</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate?.("patients")}
-        >
-          <MaterialIcons name="group" size={24} color={COLORS.slate300} />
-          <Text style={styles.navLabel}>Patients</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate?.("sync")}
-        >
-          <MaterialIcons name="sync" size={24} color={COLORS.slate300} />
-          <Text style={styles.navLabel}>Sync</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate?.("profile")}
-        >
-          <MaterialIcons name="person" size={24} color={COLORS.slate300} />
-          <Text style={styles.navLabel}>Profile</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };
@@ -559,31 +515,6 @@ const styles = StyleSheet.create({
     color: COLORS.slate500,
     textTransform: "uppercase",
     letterSpacing: 0.5,
-  },
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingBottom: 32,
-    paddingHorizontal: 16,
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.slate100,
-  },
-  navItem: {
-    alignItems: "center",
-    gap: 4,
-  },
-  navLabel: {
-    fontSize: 10,
-    fontWeight: "900",
-    color: COLORS.slate300,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  navLabelActive: {
-    color: COLORS.primary,
   },
 });
 
