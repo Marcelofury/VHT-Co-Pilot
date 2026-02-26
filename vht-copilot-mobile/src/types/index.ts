@@ -38,6 +38,8 @@ export interface VHTMember {
   id: string;
   vhtId: string;
   name: string;
+  email: string;
+  role: string;
   photoUrl?: string;
   village: string;
   district: string;
