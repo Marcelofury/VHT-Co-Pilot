@@ -8,6 +8,9 @@ import {
   SafeAreaView,
   StatusBar,
   Animated,
+  Alert,
+  Platform,
+  ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
@@ -36,6 +39,18 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
     english: "High Fever",
     luganda: "Omusujja ogw'amaanyi",
   });
+  const [hasRecorded, setHasRecorded] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Platform-aware alert function
+  const showAlert = (title: string, message: string, onOk?: () => void) => {
+    if (Platform.OS === 'web') {
+      alert(`${title}\n\n${message}`);
+      onOk?.();
+    } else {
+      Alert.alert(title, message, [{ text: 'OK', onPress: onOk }]);
+    }
+  };
 
   // Animated wave bars
   const waveAnimations = useRef(
@@ -79,7 +94,59 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
   };
 
   const handleMicPress = () => {
-    setIsRecording(!isRecording);
+    if (!isRecording) {
+      // Starting recording
+      setIsRecording(true);
+      setHasRecorded(true);
+      showAlert(
+        "Recording Started",
+        "Voice capture is now active. Speak clearly to record patient symptoms."
+      );
+    } else {
+      // Stopping recording
+      setIsRecording(false);
+      showAlert(
+        "Recording Stopped",
+        "Voice capture has been saved. You can record again or complete the intake."
+      );
+    }
+  };
+
+  const handleCompleteIntake = async () => {
+    if (!hasRecorded) {
+      showAlert(
+        "No Recording",
+        "Please record patient symptoms before completing the intake."
+      );
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Simulate API call to submit intake data
+    try {
+      console.log("Submitting intake for patient:", selectedPatient);
+      
+      // Simulate network delay
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      showAlert(
+        "Intake Complete!",
+        "Patient symptoms have been recorded and AI triage assessment is complete.",
+        () => {
+          // Navigate back after successful submission
+          onBack?.();
+        }
+      );
+    } catch (error) {
+      console.error("Error submitting intake:", error);
+      showAlert(
+        "Submission Failed",
+        "Failed to submit patient intake. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getTriageColor = () => {
@@ -233,6 +300,28 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
 
       {/* Microphone Button Section */}
       <View style={styles.micSection}>
+        {/* Complete Button (shown after recording) */}
+        {hasRecorded && !isRecording && (
+          <TouchableOpacity
+            style={[styles.completeButton, isSubmitting && styles.completeButtonDisabled]}
+            onPress={handleCompleteIntake}
+            disabled={isSubmitting}
+            activeOpacity={0.8}
+          >
+            {isSubmitting ? (
+              <>
+                <ActivityIndicator size="small" color={COLORS.white} />
+                <Text style={styles.completeButtonText}>Submitting...</Text>
+              </>
+            ) : (
+              <>
+                <MaterialIcons name="check-circle" size={20} color={COLORS.white} />
+                <Text style={styles.completeButtonText}>Complete Intake</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+
         <View style={styles.micButtonContainer}>
           {isRecording && (
             <>
@@ -446,6 +535,30 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 30,
     elevation: 10,
+  },
+  completeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: COLORS.successGreen,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 99,
+    minWidth: 200,
+    shadowColor: COLORS.successGreen,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  completeButtonDisabled: {
+    opacity: 0.6,
+  },
+  completeButtonText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: COLORS.white,
   },
   micButtonContainer: {
     position: "relative",
