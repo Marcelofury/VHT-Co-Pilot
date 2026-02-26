@@ -167,10 +167,15 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: COLORS.white,
     borderTopWidth: 0,
-    shadowColor: COLORS.slate800,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    ...(Platform.OS === 'web' 
+      ? { boxShadow: '0px -4px 12px rgba(15, 23, 42, 0.08)' }
+      : {
+          shadowColor: COLORS.slate800,
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+        }
+    ),
     elevation: 12,
   },
   accentLine: {
