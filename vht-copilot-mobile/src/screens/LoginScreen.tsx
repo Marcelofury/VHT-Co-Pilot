@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  ScrollView,
+  KeyboardAvoidingView,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
@@ -63,18 +65,27 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       
-      <View style={styles.content}>
-        {/* Logo Section */}
-        <View style={styles.logoSection}>
-          <View style={styles.logoCircle}>
-            <MaterialIcons name="local-hospital" size={48} color={COLORS.primary} />
-          </View>
-          <Text style={styles.title}>VHT Co-Pilot</Text>
-          <Text style={styles.subtitle}>Village Health Team Assistant</Text>
-        </View>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.content}>
+            {/* Logo Section */}
+            <View style={styles.logoSection}>
+              <View style={styles.logoCircle}>
+                <MaterialIcons name="local-hospital" size={48} color={COLORS.primary} />
+              </View>
+              <Text style={styles.title}>VHT Co-Pilot</Text>
+              <Text style={styles.subtitle}>Village Health Team Assistant</Text>
+            </View>
 
-        {/* Form Section */}
-        <View style={styles.formSection}>
+            {/* Form Section */}
+            <View style={styles.formSection}>
           <Text style={styles.welcomeText}>Welcome Back</Text>
           <Text style={styles.welcomeSubtext}>Login to continue</Text>
 
@@ -167,6 +178,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           </Text>
         </View>
       </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -176,14 +189,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.white,
   },
-  content: {
+  keyboardView: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: 24,
-    justifyContent: "space-between",
+  },
+  content: {
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 480,
+    minHeight: '100%',
   },
   logoSection: {
     alignItems: "center",
-    marginTop: 60,
+    marginTop: 40,
+    marginBottom: 40,
   },
   logoCircle: {
     width: 96,
@@ -205,9 +227,7 @@ const styles = StyleSheet.create({
     color: COLORS.slate500,
   },
   formSection: {
-    flex: 1,
-    justifyContent: "center",
-    marginTop: -40,
+    marginBottom: 40,
   },
   welcomeText: {
     fontSize: 24,
@@ -271,6 +291,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: 32,
   },
   registerText: {
     fontSize: 14,
@@ -284,6 +305,7 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: "center",
     paddingBottom: 24,
+    marginTop: 'auto',
   },
   footerText: {
     fontSize: 12,
