@@ -10,10 +10,21 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
 import { authAPI } from "../services/api";
+
+// Web-compatible alert
+const showAlert = (title: string, message: string, onOk?: () => void) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}: ${message}`);
+    onOk?.();
+  } else {
+    Alert.alert(title, message, onOk ? [{ text: "OK", onPress: onOk }] : undefined);
+  }
+};
 
 interface RegisterScreenProps {
   onRegisterSuccess?: () => void;
@@ -46,44 +57,62 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   };
 
   const validateForm = () => {
+    console.log("Validating form...", formData);
+    
     if (!formData.firstName.trim()) {
-      Alert.alert("Error", "Please enter your first name");
+      console.log("Validation failed: First name missing");
+      showAlert("Error", "Please enter your first name");
       return false;
     }
     if (!formData.lastName.trim()) {
-      Alert.alert("Error", "Please enter your last name");
+      console.log("Validation failed: Last name missing");
+      showAlert("Error", "Please enter your last name");
       return false;
     }
     if (formData.role === "VHT" && !formData.vhtId.trim()) {
-      Alert.alert("Error", "Please enter your VHT ID");
+      console.log("Validation failed: VHT ID missing");
+      showAlert("Error", "Please enter your VHT ID");
       return false;
     }
     if (formData.role === "HOSPITAL" && !formData.hospitalCode.trim()) {
-      Alert.alert("Error", "Please enter your Hospital ID");
+      console.log("Validation failed: Hospital code missing");
+      showAlert("Error", "Please enter your Hospital ID");
       return false;
     }
     if (!formData.username.trim()) {
-      Alert.alert("Error", "Please enter a username");
+      console.log("Validation failed: Username missing");
+      showAlert("Error", "Please enter a username");
       return false;
     }
     if (formData.password.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters");
+      console.log("Validation failed: Password too short");
+      showAlert("Error", "Password must be at least 6 characters");
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
+      console.log("Validation failed: Passwords don't match");
+      showAlert("Error", "Passwords do not match");
       return false;
     }
+    
+    console.log("Validation passed!");
     return true;
   };
 
   const handleRegister = async () => {
-    if (!validateForm()) return;
+    console.log("Register button clicked!");
+    console.log("Form data:", formData);
+    
+    if (!validateForm()) {
+      console.log("Form validation failed");
+      return;
+    }
 
+    console.log("Form validation passed, starting registration...");
     setIsLoading(true);
     try {
-      // Call registration API
-      await authAPI.register({
+      // Prepare data
+      const registrationData = {
         username: formData.username,
         password: formData.password,
         first_name: formData.firstName,
@@ -94,17 +123,39 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
         phone_number: formData.phone,
         village: formData.village,
         district: formData.district,
-      });
+      };
       
-      Alert.alert(
+      console.log("Registering with data:", registrationData);
+      
+      // Call registration API
+      await authAPI.register(registrationData);
+      
+      console.log("Registration successful!");
+      showAlert(
         "Success",
         "Registration successful! Please login with your credentials.",
-        [{ text: "OK", onPress: onNavigateToLogin }]
+        onNavigateToLogin
       );
     } catch (error: any) {
       console.error("Registration error:", error);
-      const errorMessage = error.response?.data?.detail || error.message || "Registration failed. Please try again.";
-      Alert.alert("Registration Failed", errorMessage);
+      console.error("Response data:", error.response?.data);
+      
+      // Extract detailed error message
+      let errorMessage = "Registration failed. Please try again.";
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.data) {
+        // Try to format validation errors
+        const errors = error.response.data;
+        const messages = Object.entries(errors).map(([key, value]) => {
+          return `${key}: ${Array.isArray(value) ? value.join(', ') : value}`;
+        });
+        errorMessage = messages.join('\n');
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      showAlert("Registration Failed", errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -436,10 +487,14 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    width: '100%',
   },
   scrollContent: {
     paddingHorizontal: 24,
     paddingBottom: 40,
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 600,
   },
   header: {
     alignItems: "center",
