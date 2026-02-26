@@ -87,10 +87,13 @@ def register_user(request):
     """
     data = request.data
     
+    print(f"Registration attempt with data: {data}")  # Debug logging
+    
     # Validate required fields
     required_fields = ['username', 'password', 'first_name', 'last_name', 'role']
     for field in required_fields:
         if not data.get(field):
+            print(f"Missing field: {field}")  # Debug logging
             return Response(
                 {'detail': f'{field} is required'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -105,20 +108,31 @@ def register_user(request):
     
     # Create user
     try:
-        user = User.objects.create_user(
-            username=data['username'],
-            password=data['password'],
-            first_name=data['first_name'],
-            last_name=data['last_name'],
-            email=data.get('email', ''),
-            role=data.get('role', 'VHT'),
-            vht_id=data.get('vht_id', ''),
-            hospital_code=data.get('hospital_code', ''),
-            phone_number=data.get('phone_number', ''),
-            village=data.get('village', ''),
-            district=data.get('district', ''),
-        )
+        print(f"Creating user with data: {data}")
         
+        # Prepare user data, converting empty strings to None for nullable fields
+        user_data = {
+            'username': data['username'],
+            'password': data['password'],
+            'first_name': data['first_name'],
+            'last_name': data['last_name'],
+            'email': data.get('email', ''),
+            'role': data.get('role', 'VHT'),
+            'phone_number': data.get('phone_number', ''),
+            'village': data.get('village', ''),
+            'district': data.get('district', ''),
+        }
+        
+        # Handle nullable unique fields - convert empty string to None
+        vht_id = data.get('vht_id', '')
+        user_data['vht_id'] = vht_id if vht_id else None
+        
+        hospital_code = data.get('hospital_code', '')
+        user_data['hospital_code'] = hospital_code if hospital_code else None
+        
+        user = User.objects.create_user(**user_data)
+        
+        print(f"User created successfully: {user.username}")
         serializer = UserSerializer(user)
         return Response(
             {
@@ -128,8 +142,37 @@ def register_user(request):
             status=status.HTTP_201_CREATED
         )
     except Exception as e:
+        print(f"Registration error: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return Response(
             {'detail': str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+@api_view(['GET', 'PATCH', 'PUT'])
+@permission_classes([IsAuthenticated])
+def get_profile(request):
+    """
+    Get or update current user's profile
+    """
+    if request.method == 'GET':
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+    
+    elif request.method in ['PATCH', 'PUT']:
+        # Update profile
+        serializer = UserSerializer(
+            request.user, 
+            data=request.data, 
+            partial=True  # Allow partial updates
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(
+            serializer.errors, 
             status=status.HTTP_400_BAD_REQUEST
         )
 
