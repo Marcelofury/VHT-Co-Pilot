@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,10 +8,14 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
 import { useAppStore } from "../stores/appStore";
+import { dashboardAPI, patientAPI } from "../services/api";
+import { Patient } from "../types";
 
 interface DashboardScreenProps {
   onNavigate?: (screen: string) => void;
@@ -20,36 +24,56 @@ interface DashboardScreenProps {
   onViewPatient?: (patientId: string) => void;
 }
 
-interface RecentActivity {
-  id: string;
-  patientName: string;
-  action: string;
-  time: string;
-  status: "completed" | "flagged";
-}
-
-const RECENT_ACTIVITIES: RecentActivity[] = [
-  {
-    id: "1",
-    patientName: "Nalubega Sarah",
-    action: "Intake Completed",
-    time: "10:45 AM",
-    status: "completed",
-  },
-  {
-    id: "2",
-    patientName: "Mukasa John",
-    action: "Triage Flagged",
-    time: "09:15 AM",
-    status: "flagged",
-  },
-];
-
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   onNavigate,
   onStartIntake,
 }) => {
   const { currentUser, lastSyncTime } = useAppStore();
+  const [stats, setStats] = useState({
+    total_patients: 0,
+    patients_this_week: 0,
+    emergency_referrals_today: 0,
+    active_referrals: 0,
+  });
+  const [recentPatients, setRecentPatients] = useState<Patient[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      console.log("Loading dashboard data...");
+      
+      // Load stats
+      const statsData = await dashboardAPI.getStats();
+      console.log("Dashboard stats loaded:", statsData);
+      setStats({
+        total_patients: statsData.total_patients || 0,
+        patients_this_week: statsData.patients_this_week || 0,
+        emergency_referrals_today: statsData.emergency_referrals_today || 0,
+        active_referrals: statsData.active_referrals || 0,
+      });
+
+      // Load recent patients
+      const patientsData = await patientAPI.getAll();
+      console.log("Recent patients loaded:", patientsData.length);
+      // Get the 5 most recent patients
+      setRecentPatients(patientsData.slice(0, 5));
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+    } finally {
+      setIsLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadDashboardData();
+  };
 
   const handleStartIntake = () => {
     console.log('Start Intake button pressed');
@@ -93,53 +117,71 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         </View>
       </View>
 
-      {/* Header Section */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.headerTitle}>Ready to Assist</Text>
-            <Text style={styles.headerSubtitle}>VHT Co-Pilot Dashboard</Text>
-          </View>
-          <Image
-            source={{
-              uri:
-                currentUser?.photoUrl ||
-                "https://randomuser.me/api/portraits/men/32.jpg",
-            }}
-            style={styles.profileImage}
-          />
-        </View>
-
-        {/* Stats Row */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.statsContainer}
-        >
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Today's Intakes</Text>
-            <Text style={styles.statValue}>12</Text>
-          </View>
-          <View style={[styles.statCard, styles.statCardYellow]}>
-            <Text style={[styles.statLabel, styles.statLabelYellow]}>
-              Urgent
-            </Text>
-            <Text style={[styles.statValue, styles.statValueYellow]}>03</Text>
-          </View>
-          <View style={[styles.statCard, styles.statCardGreen]}>
-            <Text style={[styles.statLabel, styles.statLabelGreen]}>
-              Follow-ups
-            </Text>
-            <Text style={[styles.statValue, styles.statValueGreen]}>08</Text>
-          </View>
-        </ScrollView>
-      </View>
-
-      {/* Main Content */}
+      {/* Scrollable Content */}
       <ScrollView
         style={styles.mainContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+          />
+        }
       >
+        {/* Header Section */}
+        <View style={styles.header}>
+          <View style={styles.headerTop}>
+            <View>
+              <Text style={styles.headerTitle}>Ready to Assist</Text>
+              <Text style={styles.headerSubtitle}>VHT Co-Pilot Dashboard</Text>
+            </View>
+            <Image
+              source={{
+                uri:
+                  currentUser?.photoUrl ||
+                  "https://randomuser.me/api/portraits/men/32.jpg",
+              }}
+              style={styles.profileImage}
+            />
+          </View>
+
+          {/* Stats Row */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.statsContainer}
+          >
+            <View style={styles.statCard}>
+              <Text style={styles.statLabel}>This Week</Text>
+              {isLoading ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              ) : (
+                <Text style={styles.statValue}>{stats.patients_this_week}</Text>
+              )}
+            </View>
+            <View style={[styles.statCard, styles.statCardYellow]}>
+              <Text style={[styles.statLabel, styles.statLabelYellow]}>
+                Urgent Today
+              </Text>
+              {isLoading ? (
+                <ActivityIndicator size="small" color={COLORS.triageYellow} />
+              ) : (
+                <Text style={[styles.statValue, styles.statValueYellow]}>{stats.emergency_referrals_today}</Text>
+              )}
+            </View>
+            <View style={[styles.statCard, styles.statCardGreen]}>
+              <Text style={[styles.statLabel, styles.statLabelGreen]}>
+                Active Referrals
+              </Text>
+              {isLoading ? (
+                <ActivityIndicator size="small" color={COLORS.triageGreen} />
+              ) : (
+                <Text style={[styles.statValue, styles.statValueGreen]}>{stats.active_referrals}</Text>
+              )}
+            </View>
+          </ScrollView>
+        </View>
         {/* Quick Action Grid */}
         <View style={styles.actionGrid}>
           <TouchableOpacity
@@ -215,41 +257,63 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
         {/* Recent Activity */}
         <View style={styles.recentSection}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <View style={styles.activityList}>
-            {RECENT_ACTIVITIES.map((activity) => (
-              <TouchableOpacity
-                key={activity.id}
-                style={styles.activityCard}
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    styles.activityIndicator,
-                    {
-                      backgroundColor:
-                        activity.status === "completed"
-                          ? COLORS.successGreen
-                          : COLORS.triageYellow,
-                    },
-                  ]}
-                />
-                <View style={styles.activityInfo}>
-                  <Text style={styles.activityName}>
-                    {activity.patientName}
-                  </Text>
-                  <Text style={styles.activityTime}>
-                    {activity.action} • {activity.time}
-                  </Text>
-                </View>
-                <MaterialIcons
-                  name="chevron-right"
-                  size={16}
-                  color={COLORS.slate300}
-                />
-              </TouchableOpacity>
-            ))}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recent Patients</Text>
+            <TouchableOpacity onPress={() => handleNavigate('patients')}>
+              <Text style={styles.viewAllText}>View All</Text>
+            </TouchableOpacity>
           </View>
+          
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color={COLORS.primary} />
+              <Text style={styles.loadingText}>Loading patients...</Text>
+            </View>
+          ) : recentPatients.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <MaterialIcons name="people-outline" size={48} color={COLORS.slate300} />
+              <Text style={styles.emptyText}>No patients registered yet</Text>
+              <Text style={styles.emptySubtext}>Start by adding a new patient</Text>
+            </View>
+          ) : (
+            <View style={styles.activityList}>
+              {recentPatients.map((patient) => (
+                <TouchableOpacity
+                  key={patient.id}
+                  style={styles.activityCard}
+                  activeOpacity={0.7}
+                  onPress={() => handleNavigate('patients')}
+                >
+                  <View
+                    style={[
+                      styles.activityIndicator,
+                      {
+                        backgroundColor:
+                          patient.triageLevel === "urgent" || patient.triageLevel === "highRisk"
+                            ? COLORS.triageRed
+                            : patient.triageLevel === "moderate"
+                            ? COLORS.triageYellow
+                            : COLORS.successGreen,
+                      },
+                    ]}
+                  />
+                  <View style={styles.activityInfo}>
+                    <Text style={styles.activityName}>
+                      {patient.firstName} {patient.lastName}
+                    </Text>
+                    <Text style={styles.activityTime}>
+                      {patient.age} years • {patient.location?.village || 'Unknown village'}
+                    </Text>
+                  </View>
+                  <MaterialIcons
+                    name="chevron-right"
+                    size={16}
+                    color={COLORS.slate300}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -301,10 +365,9 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: COLORS.white,
     paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingTop: 16,
     paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.slate100,
+    marginBottom: 16,
   },
   headerTop: {
     flexDirection: "row",
@@ -375,20 +438,20 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    padding: 16,
   },
   actionGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 16,
-    marginBottom: 32,
+    gap: 12,
+    marginBottom: 24,
+    paddingHorizontal: 16,
   },
   actionCard: {
     width: "47%",
-    aspectRatio: 1,
+    minHeight: 110,
     backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 12,
+    padding: 16,
     justifyContent: "space-between",
     borderWidth: 1,
     borderColor: COLORS.slate100,
@@ -407,63 +470,109 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   actionIconPrimary: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     backgroundColor: "rgba(255,255,255,0.2)",
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },
   actionIconRed: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     backgroundColor: "#FEF2F2",
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },
   actionIconBlue: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     backgroundColor: COLORS.primaryLight,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },
   actionIconGreen: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     backgroundColor: "#F2FDF5",
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },
   actionTitlePrimary: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: "700",
     color: COLORS.white,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   actionSubtitlePrimary: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: "500",
     color: "rgba(255,255,255,0.7)",
-    marginTop: 4,
+    marginTop: 2,
   },
   actionTitle: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: "700",
     color: COLORS.deepBlue,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   actionSubtitle: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: "500",
     color: COLORS.slate400,
-    marginTop: 4,
+    marginTop: 2,
   },
   recentSection: {
-    marginBottom: 24,
+    marginBottom: 80,
+    paddingHorizontal: 16,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  viewAllText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.slate400,
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: COLORS.slate100,
+    borderStyle: "dashed",
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: COLORS.slate400,
+    marginTop: 12,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: COLORS.slate300,
+    marginTop: 4,
   },
   sectionTitle: {
     fontSize: 11,
