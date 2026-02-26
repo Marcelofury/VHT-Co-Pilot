@@ -21,6 +21,8 @@ staticfiles/
 # Environment
 .env
 .env.local
+.env.example
+
 
 # AI/ML
 chroma_data/
