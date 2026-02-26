@@ -3,6 +3,42 @@ import { Patient, Symptom, Referral, VHTMember } from "../types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
+// Data transformation utilities
+const transformPatientFromAPI = (data: any): Patient => ({
+  id: data.id,
+  vhtCode: data.vht_code,
+  firstName: data.first_name,
+  lastName: data.last_name,
+  age: data.age,
+  gender: data.gender?.toLowerCase() === 'male' ? 'male' : 'female',
+  triageLevel: data.triage_level?.toLowerCase().replace('_', '') as any || 'stable',
+  lastVisit: new Date(data.last_visit || data.created_at),
+  photoUrl: data.photo,
+  location: data.village ? {
+    latitude: data.latitude || 0,
+    longitude: data.longitude || 0,
+    village: data.village,
+  } : undefined,
+  symptoms: [],
+  createdAt: new Date(data.created_at),
+  updatedAt: new Date(data.updated_at),
+});
+
+const transformUserFromAPI = (data: any): VHTMember => ({
+  id: data.id,
+  vhtId: data.vht_id || '',
+  name: `${data.first_name} ${data.last_name}`,
+  email: data.email || data.username,
+  role: data.role,
+  photoUrl: data.photo,
+  village: data.village || '',
+  district: data.district || '',
+  region: data.region || '',
+  primaryLanguage: 'en',
+  voiceFeedbackEnabled: false,
+  phone: data.phone_number,
+});
+
 // API Base URL - Changes based on platform
 const getApiBaseUrl = () => {
   if (Platform.OS === 'web') {
@@ -99,24 +135,25 @@ api.interceptors.response.use(
 export const patientAPI = {
   getAll: async (): Promise<Patient[]> => {
     const response = await api.get("/patients/");
-    return response.data.results || response.data;
+    const data = response.data.results || response.data;
+    return Array.isArray(data) ? data.map(transformPatientFromAPI) : [];
   },
 
   getById: async (id: string): Promise<Patient> => {
     const response = await api.get(`/patients/${id}/`);
-    return response.data;
+    return transformPatientFromAPI(response.data);
   },
 
   create: async (
     patient: Omit<Patient, "id" | "createdAt" | "updatedAt">,
   ): Promise<Patient> => {
     const response = await api.post("/patients/", patient);
-    return response.data;
+    return transformPatientFromAPI(response.data);
   },
 
   update: async (id: string, patient: Partial<Patient>): Promise<Patient> => {
     const response = await api.patch(`/patients/${id}/`, patient);
-    return response.data;
+    return transformPatientFromAPI(response.data);
   },
 
   getHistory: async (id: string): Promise<any[]> => {
@@ -318,16 +355,19 @@ export const syncAPI = {
 export const dashboardAPI = {
   getStats: async (): Promise<{
     total_patients: number;
+    patients_this_week: number;
+    total_referrals: number;
     active_referrals: number;
-    emergency_cases: number;
-    recent_cases: any[];
+    emergency_referrals_today: number;
+    available_hospitals: number;
+    triage_distribution: any[];
   }> => {
     const response = await api.get("/dashboard/stats/");
     return response.data;
   },
 };
 
-export { setAuthToken, clearAuthToken, loadAuthToken };// Authentication & VHT Member API
+// Authentication & VHT Member API
 export const authAPI = {
   register: async (data: {
     username: string;
@@ -364,12 +404,26 @@ export const authAPI = {
 
   getProfile: async (): Promise<VHTMember> => {
     const response = await api.get("/users/profile/");
-    return response.data;
+    return transformUserFromAPI(response.data);
   },
 
   updateProfile: async (updates: Partial<VHTMember>): Promise<VHTMember> => {
-    const response = await api.patch("/users/profile/", updates);
-    return response.data;
+    // Convert camelCase to snake_case for backend
+    const backendData: any = {};
+    if (updates.name) {
+      // Split name into first and last name
+      const nameParts = updates.name.trim().split(" ");
+      backendData.first_name = nameParts[0];
+      backendData.last_name = nameParts.slice(1).join(" ") || nameParts[0];
+    }
+    if (updates.village) backendData.village = updates.village;
+    if (updates.district) backendData.district = updates.district;
+    if (updates.region) backendData.region = updates.region;
+    if (updates.phone) backendData.phone_number = updates.phone;
+    if (updates.photoUrl) backendData.photo = updates.photoUrl;
+    
+    const response = await api.patch("/users/profile/", backendData);
+    return transformUserFromAPI(response.data);
   },
 };
 
