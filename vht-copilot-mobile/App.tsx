@@ -5,13 +5,14 @@ import * as SplashScreen from "expo-splash-screen";
 import { AppNavigator } from "./src/navigation";
 import { COLORS } from "./src/constants/colors";
 import { useAppStore } from "./src/stores/appStore";
+import { loadAuthToken, authAPI } from "./src/services/api";
 
 // Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
-  const { setLanguage, setIsOnline } = useAppStore();
+  const { setLanguage, setIsOnline, setCurrentUser } = useAppStore();
 
   useEffect(() => {
     async function prepare() {
@@ -20,13 +21,27 @@ export default function App() {
         setLanguage("en"); // Default to English
         setIsOnline(true); // Assume online by default
 
-        // Add any other initialization logic here
-        // - Load cached data
-        // - Check authentication
-        // - Fetch initial data
+        // Check authentication - load stored token
+        console.log("Loading auth token...");
+        const token = await loadAuthToken();
+        
+        if (token) {
+          console.log("Auth token found, fetching user profile...");
+          try {
+            const profile = await authAPI.getProfile();
+            setCurrentUser(profile);
+            console.log("User profile loaded:", profile.email);
+          } catch (error) {
+            console.warn("Failed to load user profile:", error);
+            // Token might be expired, clear it
+            // clearAuthToken() will be called by the interceptor
+          }
+        } else {
+          console.log("No auth token found");
+        }
 
         // Simulate loading time for splash screen
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       } catch (e) {
         console.warn("Error during app initialization:", e);
       } finally {
