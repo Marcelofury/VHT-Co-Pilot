@@ -5,10 +5,13 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
 import CustomTabBar from "../components/CustomTabBar";
+import { useAppStore } from "../stores/appStore";
+import { clearAuthToken } from "../services/api";
 
 // Import screens
 import {
   PatientListScreen,
+  PatientFormScreen,
   VoiceIntakeScreen,
   EmergencyDecisionScreen,
   DashboardScreen,
@@ -26,6 +29,7 @@ export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
   HospitalMain: undefined;
+  PatientForm: undefined;
   VoiceIntake: { patientId?: string };
   EmergencyDecision: { patientId: string };
   AIAction: { referralId?: string };
@@ -88,11 +92,11 @@ const DashboardScreenWrapper: React.FC<any> = ({ navigation }) => {
   return (
     <DashboardScreen
       onStartIntake={() => {
-        navigation.navigate("VoiceIntake", {});
+        navigation.navigate("PatientForm");
       }}
       onQuickAction={(action) => {
         if (action === "intake") {
-          navigation.navigate("VoiceIntake", {});
+          navigation.navigate("PatientForm");
         } else if (action === "patients") {
           navigation.navigate("Patients");
         } else if (action === "referrals") {
@@ -155,12 +159,12 @@ const PatientListScreenWrapper: React.FC<any> = ({ navigation }) => {
         navigation.navigate("VoiceIntake", { patientId });
       }}
       onAddPatient={() => {
-        navigation.navigate("VoiceIntake", {});
+        navigation.navigate("PatientForm");
       }}
       onNavigate={(screen) => {
         switch (screen) {
           case "intake":
-            navigation.navigate("VoiceIntake", {});
+            navigation.navigate("PatientForm");
             break;
           case "sync":
             navigation.navigate("Sync");
@@ -229,9 +233,30 @@ const SyncScreenWrapper: React.FC<any> = ({ navigation }) => {
 };
 
 const ProfileScreenWrapper: React.FC<any> = ({ navigation }) => {
+  const { clearAuth } = useAppStore();
+  
+  const handleSignOut = async () => {
+    try {
+      // Clear auth token from storage and axios headers
+      await clearAuthToken();
+      
+      // Clear user data from store
+      clearAuth();
+      
+      // Navigate to login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
   return (
     <ProfileScreen
       onBack={() => navigation.goBack()}
+      onSignOut={handleSignOut}
       onNavigate={(screen) => {
         switch (screen) {
           case "intake":
@@ -250,6 +275,17 @@ const ProfileScreenWrapper: React.FC<any> = ({ navigation }) => {
 };
 
 // Stack screen wrappers
+const PatientFormScreenWrapper: React.FC<any> = ({ navigation }) => {
+  return (
+    <PatientFormScreen
+      onBack={() => navigation.goBack()}
+      onPatientCreated={(patientId) => {
+        navigation.replace("VoiceIntake", { patientId });
+      }}
+    />
+  );
+};
+
 const VoiceIntakeScreenWrapper: React.FC<any> = ({ navigation, route }) => {
   return (
     <VoiceIntakeScreen
@@ -379,10 +415,26 @@ const RegisterScreenWrapper: React.FC<any> = ({ navigation }) => {
 
 // Main App Navigator
 export const AppNavigator: React.FC = () => {
+  const { currentUser } = useAppStore();
+  
+  // Determine initial route based on authentication state
+  const getInitialRouteName = () => {
+    if (!currentUser) {
+      return "Login";
+    }
+    
+    // User is authenticated, check role
+    if (currentUser.role === 'HOSPITAL' || currentUser.role === 'HOSPITAL_STAFF') {
+      return "HospitalMain";
+    } else {
+      return "Main";
+    }
+  };
+
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Login"
+        initialRouteName={getInitialRouteName()}
         screenOptions={{
           headerShown: false,
           animation: "slide_from_right",
@@ -392,6 +444,7 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="Register" component={RegisterScreenWrapper} />
         <Stack.Screen name="Main" component={MainTabNavigator} />
         <Stack.Screen name="HospitalMain" component={HospitalTabNavigator} />
+        <Stack.Screen name="PatientForm" component={PatientFormScreenWrapper} />
         <Stack.Screen name="VoiceIntake" component={VoiceIntakeScreenWrapper} />
         <Stack.Screen
           name="EmergencyDecision"
