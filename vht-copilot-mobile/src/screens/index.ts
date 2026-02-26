@@ -1,5 +1,6 @@
 // Screen exports
 export { PatientListScreen } from "./PatientListScreen";
+export { PatientFormScreen } from "./PatientFormScreen";
 export { VoiceIntakeScreen } from "./VoiceIntakeScreen";
 export { EmergencyDecisionScreen } from "./EmergencyDecisionScreen";
 export { DashboardScreen } from "./DashboardScreen";
