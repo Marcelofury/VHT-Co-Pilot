@@ -147,6 +147,15 @@ OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
 OPENAI_TEMPERATURE = float(os.getenv('OPENAI_TEMPERATURE', '0.2'))
 WHISPER_MODEL = os.getenv('WHISPER_MODEL', 'whisper-1')
 
+# Groq Configuration (Free tier alternative for testing)
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
+GROQ_MODEL = os.getenv('GROQ_MODEL', 'llama-3.3-70b-versatile')
+GROQ_TEMPERATURE = float(os.getenv('GROQ_TEMPERATURE', '0.2'))
+
+# Testing Mode Flags
+USE_LOCAL_EMBEDDINGS = os.getenv('USE_LOCAL_EMBEDDINGS', 'false').lower() == 'true'
+USE_GROQ_LLM = os.getenv('USE_GROQ_LLM', 'false').lower() == 'true'
+
 # ChromaDB Configuration
 CHROMA_PERSIST_DIRECTORY = os.getenv('CHROMA_PERSIST_DIRECTORY', str(BASE_DIR / 'chroma_data'))
 CHROMA_COLLECTION_NAME = os.getenv('CHROMA_COLLECTION_NAME', 'uganda_moh_guidelines')

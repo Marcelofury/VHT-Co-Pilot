@@ -72,9 +72,25 @@ class AgentRunner:
             # Step 1: Transcription (if audio provided)
             if audio_file_path:
                 logger.info("Step 1: Transcribing audio...")
-                transcription_result = self.whisper.transcribe_audio(
-                    audio_file_path, language
-                )
+                
+                # Try Google Speech first (FREE 60 min/month), fallback to Whisper
+                try:
+                    from .google_speech_service import google_speech_service
+                    from django.conf import settings
+                    
+                    if hasattr(settings, 'USE_GOOGLE_SPEECH') and settings.USE_GOOGLE_SPEECH and google_speech_service.is_available:
+                        logger.info("Using Google Speech-to-Text (FREE)")
+                        transcription_result = google_speech_service.transcribe_audio(
+                            audio_file_path,
+                            language_code=f"{language}-UG"
+                        )
+                    else:
+                        raise Exception("Google Speech not configured")
+                except Exception as e:
+                    logger.warning(f"Google Speech unavailable ({e}), falling back to Whisper")
+                    transcription_result = self.whisper.transcribe_audio(
+                        audio_file_path, language
+                    )
                 
                 if transcription_result.get('error'):
                     result['error'] = f"Transcription failed: {transcription_result['error']}"
@@ -162,28 +178,41 @@ class AgentRunner:
             patient.last_triage_confidence = result['confidence_score']
             patient.save()
             
-            # Step 7: Assign referral if emergency
-            if is_emergency:
-                logger.info("Step 7: Creating emergency referral...")
-                referral_result = self.tools.assign_e_referral(
-                    patient=patient,
-                    condition=result.get('condition_detected', 'Emergency case'),
-                    specialty=result.get('recommended_specialty', 'emergency'),
-                    urgency_level='URGENT',
-                    triage_score=result['triage_score'],
-                    confidence_score=result['confidence_score'],
-                    symptoms_summary=transcription_text,
-                    first_aid_instructions=[result.get('first_aid_steps', '')],
-                    ai_reasoning=result.get('reasoning_summary', ''),
-                    guideline_citation=result.get('guideline_page', ''),
-                    user=user
-                )
-                
-                result['referral'] = referral_result
-                result['alert_sent'] = referral_result.get('success', False)
+            # Step 7: AUTOMATIC REFERRAL TO NEAREST HOSPITAL (AI AGENT DECISION)
+            # This happens for ALL triages automatically - not manual VHT sync
+            logger.info("Step 7: AI Agent creating automatic referral to nearest hospital...")
+            
+            # Determine urgency level for referral based on triage score
+            if result['triage_score'] >= 9:
+                urgency_level = 'URGENT'
+            elif result['triage_score'] >= 7:
+                urgency_level = 'HIGH_RISK'
+            elif result['triage_score'] >= 4:
+                urgency_level = 'MODERATE'
             else:
-                result['referral'] = None
-                result['alert_sent'] = False
+                urgency_level = 'STABLE'
+            
+            # Update emergency flag based on urgency
+            result['emergency'] = urgency_level in ['URGENT', 'HIGH_RISK']
+            
+            # Create referral for ALL cases (automatic AI agent action)
+            referral_result = self.tools.assign_e_referral(
+                patient=patient,
+                condition=result.get('condition_detected', 'Triage completed'),
+                specialty=result.get('recommended_specialty', 'general'),
+                urgency_level=urgency_level,
+                triage_score=result['triage_score'],
+                confidence_score=result['confidence_score'],
+                symptoms_summary=transcription_text,
+                first_aid_instructions=[result.get('first_aid_steps', '')],
+                ai_reasoning=result.get('reasoning_summary', ''),
+                guideline_citation=result.get('guideline_page', ''),
+                user=user
+            )
+            
+            result['referral'] = referral_result
+            result['alert_sent'] = referral_result.get('alert_sent', False)
+            result['auto_referred'] = True  # Mark as automatic agent action
             
             # Step 8: Audit logging
             logger.info("Step 8: Logging to audit trail...")
