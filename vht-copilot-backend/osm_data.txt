@@ -1,0 +1,395 @@
+name	addr:district	amenity	health_facility:level	@lat	@lon
+Mbale Regional Referral Hospital		hospital		1.0764209	34.1767819
+St Martins Medical Centre		hospital		1.0756393	34.1772103
+Cure Children's Hospital of Uganda		hospital		1.0740559	34.1717568
+Uganda Red Cross		hospital		1.0724469	34.1746525
+Peace Medical Centre		hospital		0.9815378	34.2016546
+Kololo Hospital Kampala Ltd.		hospital		0.3338290	32.5891586
+St. Charles Lwanga Buikwe Hospital		hospital		0.3392858	33.0320706
+Victoria Clinic		hospital		0.4272364	33.2087981
+Wi Anaka health centre		hospital		2.5786335	31.7759892
+		hospital		2.2473075	32.9003043
+		hospital		3.0104432	30.9605342
+		hospital		2.2358737	32.8990967
+		hospital		1.7158382	33.6158723
+		hospital		1.0909789	34.1769432
+		hospital		1.3574886	34.0328596
+Kabale Referral Hospital		hospital		-1.2502061	29.9891117
+Kabale Regional Hospital		hospital		-1.2510457	29.9889878
+Kathile Health Center 3		hospital		3.6457778	34.0785861
+Lochom Health Center 2		hospital		3.4187552	34.1457784
+Kanyenya Hospital		hospital		0.9438588	34.1261633
+Kinoni Health Center		hospital		-0.6589830	30.4589001
+Bukinda Health Center		hospital		-1.0170576	30.1883053
+St Francis Nagala Hospital		hospital		0.6125830	32.8216220
+Kumi Health Centre Grade III		hospital		1.4879504	33.9361388
+Kamuli District Hospital		hospital		0.9473191	33.1211263
+Hope and Faith		hospital		0.2980144	32.5338792
+Dental Clinic		hospital		1.0763572	34.1766088
+Rugazi Health Center IV		hospital		-0.2619384	30.1032131
+Hoima Regional Referral Hospital		hospital		1.4285764	31.3548798
+Medical Clinic		hospital		0.4335756	33.2122075
+Nakaseke Hospital		hospital		0.7203429	32.3984813
+		hospital		0.0484962	32.4643802
+Ishaka Adventist Hospital		hospital		-0.5440146	30.1380671
+Mutolere Hospital	Kisoro	hospital		-1.2623867	29.7213486
+Nyondo St Teresa Health Centre 3		hospital		0.9873539	34.2240104
+Makhonje Health Centre III		hospital		0.9176754	34.1290471
+Lwankoli Health Centre II		hospital		0.9667349	34.1451882
+Bufumbo Health Center		hospital		1.1119808	34.2392123
+		hospital		1.1245777	34.1950212
+Bunambali Health Centre		hospital		0.9575514	34.3709143
+Bulucheke Health Centre 3		hospital		1.0288589	34.3718513
+Bushika Health Centre		hospital		1.0544456	34.3545914
+Our lady		hospital		1.2257833	34.3118477
+Butiru Chrisco Health Centre III		hospital		0.8196119	34.2953642
+Bugobero Health Centre IV		hospital		0.8650009	34.2523743
+Sumaya Health Centre		hospital		1.3903983	34.4189262
+Holy Innocents Health Centre		hospital		1.3575306	34.1760817
+Kolir Health Centre		hospital		1.3181519	34.1642595
+Kidongole Health Centre 111		hospital		1.2739658	34.0040588
+		hospital		1.3296882	34.0422422
+Nansanga Hospital		hospital		0.9845791	33.8952616
+Nawaikoke Health Centre III		hospital		1.0896147	33.4037116
+		hospital		0.9959525	33.4930691
+Dr. Ambrosoli Health Care Centre III		hospital		0.8927484	33.5067668
+Nabikooli Health Centre II		hospital		0.9279146	33.4340337
+Apopong Health Centre		hospital		1.2181325	33.6487844
+Holy Innocents Children's Hospital (wrong)		hospital		-0.6231885	30.6474658
+Geel Hospital		hospital		0.6922057	34.1779271
+Mifumi Health Centre		hospital		0.7427701	33.9629065
+Mulanda Health Centre IV		hospital		0.6925428	34.0154048
+Poyameri health centre Three		hospital		0.6200550	34.0820382
+Village Of Eden Medical Centre		hospital		0.5519256	33.9278044
+Nambwike Health Center		hospital		0.3312601	33.9087234
+Dabani Hospital		hospital		0.4332550	34.0486588
+Sikuda Health Centre 11		hospital		0.4996147	34.0598098
+Kisiizi Hospital		hospital		-0.9979585	29.9439616
+Ministry Of Health Makuutu Health Centre 3		hospital		0.5025745	33.5921266
+Buwaiswa Health Center III		hospital		0.5196306	33.5188622
+Lameka Community Health Services		hospital		0.4534744	33.4822726
+Waibuga Health Centre II		hospital		0.6335914	33.3847423
+Bukonko Primary School		hospital		0.6439670	33.4656510
+AmuriaHC4		hospital		2.0320788	33.6411609
+Victoria University Health Care Center		hospital		0.3373484	32.5807360
+Georgina Eye Hospital		hospital		0.3366461	32.5795734
+St Joseph's Hospital		hospital		3.3023034	32.8924546
+Kira Health centre lll		hospital		0.4003802	32.6392202
+		hospital		0.4383547	33.1961177
+Kaberamaido Health Center IV		hospital		1.7654224	33.1522665
+Bugoye Heath Centre III		hospital		0.3018778	30.0987532
+Kalangala Health Centre IV		hospital		-0.3211864	32.2917285
+Holy Innocents Health Center		hospital		1.3785180	34.2174429
+Engari HC III		hospital		-0.0507649	30.6385151
+Zumbo HC III		hospital		2.5095646	30.9119022
+Ocodri HC III		hospital		3.0764065	31.0664195
+		hospital		-0.5670384	30.2648301
+shira hospitals		hospital		2.7971088	30.8919392
+Wellington Diabetes and Heart Clinic		hospital		0.3175084	32.5767662
+Kitovu General hospital		hospital		-0.3438561	31.7588200
+Malcom Health Center		hospital		0.3673421	32.6374142
+TMR International Hospital		hospital		0.3677122	32.6371568
+Zia Angelina		hospital		0.3878176	32.6542050
+Life Link Hospital		hospital		0.3787829	32.6451372
+JB Medical		hospital		0.4073812	32.6416683
+Mulago National Referral Hospital		hospital		0.3389522	32.5768538
+Butabika Hospital		hospital		0.3158703	32.6579040
+St. Anthony's Hospital		hospital		0.6829931	34.1799132
+International Hospital Kampala		hospital		0.3051484	32.6106013
+Lira Regional Referral Hospital		hospital		2.2518200	32.9020298
+Mbale Regional Referral Hospital		hospital		1.0775431	34.1765563
+Arua Regional Referral Hospital		hospital		3.0199724	30.9138891
+St. Mary's Hospital Lacor		hospital		2.7676998	32.2527600
+Entebbe General Hospital		hospital		0.0640418	32.4710810
+Buhinga Fort Portal Regional Referal Huspital		hospital		0.6550923	30.2812857
+Entebbe Hospital		hospital		0.0590592	32.4710196
+Holy Family Virika Hospital		hospital		0.6379499	30.2684644
+Mbarara Regional Referral Hospital		hospital		-0.6167699	30.6584069
+Mulago National Referal Hospital		hospital		0.3389522	32.5768538
+Soroti Regional Referal Hospital		hospital		1.7176546	33.6133464
+Kadic Hospital		hospital		0.3495216	32.6042027
+Tororo Hospital		hospital		0.6944358	34.1871687
+Adjumani Hospital		hospital		3.3740875	31.7929480
+Mengo Hospital		hospital		0.3119587	32.5580626
+St. Mary's Hospital Lacor		hospital		2.7676998	32.2527600
+KIU Teaching Hospital		hospital		-0.5400223	30.1465121
+Bishop Caesar Asili Hospital		hospital		0.8250873	32.5011226
+Kabarole Hospital		hospital		0.6488761	30.2717473
+Kawolo Hospital		hospital		0.3681475	32.9452548
+Mityana Hospital		hospital		0.3974846	32.0423887
+Kiryandongo Hospital		hospital		1.8791900	32.0618093
+Atutur General Hospital		hospital		1.4095740	33.9908589
+Kitgum Hospital		hospital		3.2945753	32.8816635
+Kumi Hospital		hospital		1.5275543	33.9762470
+Makerere University Hospital		hospital		0.3277107	32.5708615
+Kamuli Mission Hospital		hospital		0.9360386	33.1305866
+Villa Maria Hospital		hospital		-0.2270646	31.7352040
+Kiboga Hospital		hospital		0.9112265	31.7764903
+Ruth Gaylord Hospital Maganjo		hospital		0.3879817	32.5513654
+Islamic University In Uganda Health Centre		hospital		1.1009785	34.1731439
+Saidina Abubakar Islamic Hospital		hospital		0.4355604	32.5350832
+Mt Elgon Hospital		hospital		1.0684414	34.1833731
+Mbarara Regional Referral Hospital		hospital		-0.6167699	30.6584069
+Kisoro Referal Hospital	Kisoro	hospital		-1.2842307	29.6828788
+Kampala Medical Chambers Hospital		hospital		0.3249455	32.5752362
+Case Hospital		hospital		0.3246920	32.5752403
+Norvik Hospital		hospital		0.3232560	32.5744959
+Nyakibale Hospital		hospital		-0.8047335	29.9317161
+Paragon Hospital		hospital		0.3083726	32.6270590
+International Hospital Kampala		hospital		0.3051484	32.6106013
+Bududa Hospital		hospital		1.0090804	34.3328108
+Jinja Hospital		hospital		0.4306336	33.2049105
+Bethlehem Medical Centre		hospital		0.2983412	32.6221460
+CORSU Rehabilitation Hospital		hospital		0.1326038	32.5358105
+Kagando Hospital		hospital		0.0634948	29.8978482
+Masindi District Hospital		hospital		1.6842107	31.7154878
+Kilembe Hospital		hospital		0.1947882	30.0147480
+Yumbe Hospital	Yumbe	hospital		3.4399977	31.1872988
+St Andrews H/C III		hospital		-0.9984180	29.9871605
+Omugo Health Center IV	Arua	hospital		3.2769954	31.1155523
+St Francis Hospital & Nursing school Nsambya		hospital		0.2996663	32.5864522
+Anaka Hospital	Nwoya	hospital		2.5997690	31.9467607
+China-Uganda Friendship Hospital		hospital		0.3294358	32.6060832
+Moroto Regional Referral Hospital		hospital		2.5311408	34.6560689
+Whisper's Magical Children's Hospital and Maternity		hospital		0.4368031	33.2087579
+Nile International Hospital		hospital		0.4399670	33.2184367
+Mukesh Madhvani Children's Hospital		hospital		0.4380322	33.2020438
+Mpigi Hospital		hospital		0.2254232	32.3218086
+Kyanja Medical Centre		hospital		0.3980185	32.5977677
+Galilee Community Hospital		hospital		0.3316732	32.5358414
+Kiruddu General Referral Hospital		hospital		0.2480910	32.6125945
+Lubaga Hospital Maternity		hospital		0.3047679	32.5531470
+St. Luke's Hospital		hospital		2.4087088	31.1939151
+Itojo Hospital		hospital		-0.7877116	30.2773781
+Kuluva Hospital		hospital		2.9463677	30.9328159
+Villa Maria hospital		hospital		-0.2315996	31.7440534
+Uganda Martyrs Hospital Ibanda		hospital		-0.1301105	30.4481182
+Bundibugyo Hospital		hospital		0.7029469	30.0638041
+Kalisiszo Hospital		hospital		-0.5356552	31.6228355
+Nebbi Hospital		hospital		2.4768732	31.0857538
+Iganga Hospital		hospital		0.6155022	33.4853947
+Iran-Uganda Hospital		hospital		0.3335751	32.6127071
+UMC Victoria Hospital		hospital		0.3502758	32.6032024
+Kiwoko Hospital		hospital		0.8396564	32.3603492
+Kitebi Health Centre III		hospital		0.2813790	32.5455248
+Luwero Health Center IV		hospital		0.8345480	32.4991505
+Bwera Hospital		hospital		0.0334898	29.7668861
+Kapchorwa Hospital		hospital		1.4036000	34.4422053
+Nakasero Hospital		hospital		0.3268891	32.5794746
+Salem Hospital		hospital		1.1382772	34.1487430
+Naggalama General		hospital		0.5258641	32.7793731
+Kawempe National Referal Hospital		hospital		0.3619812	32.5617955
+Oriajini Hospital	Arua	hospital		3.0993814	30.9679144
+Moyo Hospital		hospital		3.6580568	31.7277545
+St. Magdalene Health Centre II - Lweza		hospital		0.2187418	32.5466935
+Iran-Uganda Hospital		hospital		0.3335751	32.6127071
+Kalisizo Hospital		hospital		-0.5356552	31.6228355
+Mayuge Medical Clinic		hospital		0.1796771	33.5620728
+Palabek Kal Health Center 3		hospital		3.4340503	32.5821114
+St. Stephen's Hospital		hospital		0.3990243	32.5751125
+ADJUMANI HOSPITAL		hospital		3.3769426	31.7907024
+Kayunga Hospital		hospital		0.7036437	32.9036681
+Mildmay Uganda		hospital		0.2265755	32.5507003
+Karusandara Health Centre		hospital		0.2123931	30.1897672
+Kabale Referral Hospital		hospital		-1.2502061	29.9891117
+Rushere Community General		hospital		-0.2103331	30.9479367
+Kitagata Referral Hospital		hospital		-0.6769913	30.1519461
+Rakai General		hospital		-0.7134964	31.4030344
+Kisiizi General		hospital		-0.9979076	30.0561909
+Comboni General		hospital		-0.4429118	30.1196697
+Ishaka Adventist Hospital		hospital		-0.5439863	30.1381974
+Nyakibale General		hospital		-0.8047335	29.9317161
+Mbarara Regional Referral		hospital		-0.6177220	30.6578930
+Itojo General		hospital		-0.7876450	30.2781415
+Holy Innocents Children's Hospital		hospital		-0.6232312	30.6467288
+Ruharo Mission Hospital		hospital		-0.6127837	30.6313603
+Mayanja Memorial Hospital		hospital		-0.5900934	30.6716078
+Kitagata Referral Hospital		hospital		-0.6765883	30.1519688
+Mbarara Regional Referral Hospital		hospital		-0.6119363	30.6599957
+Mbarara Hospital		hospital		-0.6177220	30.6578930
+Mulago-Mbarara Joint Hospital		hospital		-0.6115668	30.6599340
+Divine Mercy General		hospital		-0.5892951	30.6734576
+Mbarara Community General		hospital		-0.5892951	30.6734576
+KIU Teaching hospital		hospital		-0.5400300	30.1465360
+Hoima Regional Referral Hospital		hospital		1.4285764	31.3548798
+Kagadi General		hospital		0.9426621	30.8090036
+Kagadi Hospital		hospital		0.9420293	30.8095689
+Fort Portal Regional Referral		hospital		0.6559732	30.2812868
+Virika General		hospital		0.6379499	30.2684644
+Bwera General		hospital		0.0475280	29.7765540
+Kagando Hospital		hospital		0.0641239	29.8990480
+Kilembe General		hospital		0.1947882	30.0147480
+Bundibugyo General		hospital		0.7029469	30.0638041
+Buhinga Fortportal		hospital		0.6559732	30.2812868
+St Paul		hospital		0.1759053	30.0786413
+Kabarole COU General		hospital		0.6495430	30.2724657
+Kagando		hospital		0.0630548	29.9040688
+Rwimi		hospital		0.3830052	30.2157214
+St Luke Health Centre III		hospital		0.4637111	30.3095277
+Gulu Regional Referral Hospital		hospital		2.7773374	32.2985660
+Gulu Military Hospital Health Center IV		hospital		2.7801442	32.2805949
+Gulu Independent General		hospital		2.7773374	32.2985660
+Lacor Hospital		hospital		2.7744531	32.2991146
+St.Mary's Lacor General		hospital		2.7744531	32.2991146
+St. Mauritz Health Centre III		hospital		2.8004246	32.3020775
+Kalongo Hospital		hospital		3.0384496	33.3738590
+Lira Regional Referral		hospital		2.2524889	32.9021045
+Lira Hospital		hospital		2.2518951	32.9026222
+Lira Medical Centre		hospital		2.2440291	32.9074740
+Aber Hospital		hospital		2.2342527	32.3873748
+St Joseph's Hospital		hospital		3.2915115	32.8742106
+Kitgum General		hospital		3.2945753	32.8816635
+Moroto Hospital		hospital		2.5386872	34.6578288
+Moroto Regional Referral		hospital		2.5315884	34.6561802
+Matany Hospital		hospital		2.4542434	34.2401034
+Amudat Hospital		hospital		1.9535229	34.9433128
+Kaabong General		hospital		3.5120670	34.1319923
+Kabong Hospital		hospital		3.5119735	34.1434586
+St. Kizito Hospital		hospital		2.4424940	34.3954149
+Soroti Regional Referral		hospital		1.7176546	33.6133464
+Ngora Freda Carr General		hospital		1.4773772	33.7942535
+Kumi General		hospital		1.9172074	33.9630454
+Katakwi General		hospital		1.9178286	33.9618486
+Atutur		hospital		1.4008003	34.0084275
+Buluba Mission Hospital		hospital		0.4924454	33.3849972
+Jinja Regional Referral		hospital		0.4380498	33.2020973
+Iganga General		hospital		0.6155022	33.4853947
+Bugiri General		hospital		0.5733855	33.7427230
+Tororo General		hospital		0.6952649	34.1878363
+St. Anthony's Hospital		hospital		0.6839692	34.1798094
+St Anthony's Hospital		hospital		0.6836616	34.1799082
+Geel Hospital		hospital		0.6922057	34.1779271
+Divine Mercy General		hospital		0.7041004	34.1963736
+Mbale Regional Referral		hospital		1.0761541	34.1765724
+Cure Children's Hospital of Uganda		hospital		1.0740559	34.1717568
+Bududa General		hospital		1.0090804	34.3328108
+Kumi Orthopaedic General		hospital		1.5275543	33.9762470
+Pallisa General		hospital		1.1761322	33.7110114
+Mulago National Referral		hospital		0.3389522	32.5768538
+Butabika National Referral		hospital		0.3158703	32.6579040
+Mengo General		hospital		0.3119587	32.5580626
+Nsambya General		hospital		0.3015771	32.5835398
+Rubaga		hospital		0.3052671	32.5523740
+Kisubi General		hospital		0.1218128	32.5367559
+Kampala General		hospital		0.3249455	32.5752362
+Kawempe Regional Referral		hospital		0.3619812	32.5617955
+Kiruddu Regional Referral		hospital		0.2480910	32.6125945
+Lubaga General		hospital		0.3047679	32.5531470
+St. Francis Nsambya General		hospital		0.2996663	32.5864522
+Nakasero General		hospital		0.3268891	32.5794746
+Old Kampala General		hospital		0.3166023	32.5683693
+Kololo General		hospital		0.3341198	32.5889755
+Victoria General		hospital		0.3502758	32.6032024
+Paragon General		hospital		0.3083726	32.6270590
+Case Medical Centre General		hospital		0.3246920	32.5752403
+International		hospital		0.3051484	32.6106013
+Galilee Community General		hospital		0.3316732	32.5358414
+Makerere University General		hospital		0.3277107	32.5708615
+Kampala Independent General		hospital		0.3588591	32.6164676
+Kibuli Muslim General		hospital		0.3149691	32.5742616
+Mukwaya General		hospital		0.3001997	32.5951909
+Middle East		hospital		0.3522682	32.5587499
+Womens		hospital		0.3677607	32.5785325
+St. Catherine's General		hospital		0.3145762	32.5761720
+Murchision Bay General		hospital		0.2996882	32.6363637
+Norvik General		hospital		0.3232560	32.5744959
+Family Care General		hospital		0.3852074	32.5779855
+Ruth GayLord General		hospital		0.3879817	32.5513654
+Doctors		hospital		0.3852074	32.5779855
+Life Link General		hospital		0.3787829	32.6451372
+Medik General		hospital		0.3677122	32.6371568
+Corsu Rehabilitation General		hospital		0.1326038	32.5358105
+Entebbe General		hospital		0.0640418	32.4710810
+Le Memorial medical services General		hospital		0.3195689	32.6226587
+Saidina Abubakar Islamic General		hospital		0.4355604	32.5350832
+Kisubi Hospital		hospital		0.1218128	32.5367559
+Wakiso Health Center IV		hospital		0.3972874	32.4777642
+Nkozi Hospital		hospital		-0.0075987	32.0309694
+Gombe Hospital		hospital		0.1815466	32.1151306
+Nakaseke Hospital		hospital		0.7203429	32.3984813
+Nakaseke General		hospital		0.7170626	32.3996815
+Kiwoko General		hospital		0.8396564	32.3603492
+Bombo General Military General		hospital		0.8250873	32.5011226
+Bishop Ascili General		hospital		0.8250873	32.5011226
+Mityana General		hospital		0.3974846	32.0423887
+Kiboga General		hospital		0.9112265	31.7764903
+Mubende Regional Referral		hospital		0.5678034	31.3928822
+Masindi General General		hospital		1.6842107	31.7154878
+Masaka Regional Referral		hospital		-0.3291154	31.7352284
+Masaka (Kitovu		hospital		-0.3438561	31.7588200
+St. Joseph Kitovu General		hospital		-0.3430055	31.7597379
+Kalisizo General		hospital		-0.5355166	31.6224125
+Rakai General		hospital		-0.7134964	31.4030344
+Villa Maria General		hospital		-0.2270646	31.7352040
+Lyantonde General		hospital		-0.3935798	31.1528660
+Bamu General		hospital		-0.0831523	31.4605744
+Kayunga General		hospital		0.7036437	32.9036681
+Kamuli General		hospital		0.9473191	33.1211263
+Kamuli Mission General		hospital		0.9360386	33.1305866
+Mukono General		hospital		0.3608960	32.7470855
+Uganda Matyrs General		hospital		0.5075522	32.7530686
+St. Francis Nyenga General		hospital		0.3838935	33.1523114
+Buikwe St. Charles Lwanga General		hospital		0.3392858	33.0320706
+Kawolo General		hospital		0.3681475	32.9452548
+Lugazi Scoul General		hospital		0.3927913	32.9402167
+Nkokonjeru General		hospital		0.2358832	32.9230887
+Buwenge General		hospital		0.6475131	33.1724659
+Kakira Sugar General		hospital		0.5092963	33.2946490
+Al-Shafa Medical Centre General		hospital		0.4587162	33.2175579
+Almeca Medicare General		hospital		0.4380433	33.2114178
+New Hope General		hospital		0.6122586	33.4756091
+Busolwe General		hospital		0.9217942	34.1599841
+Kabasa Memorial General		hospital		0.9552771	34.0326555
+River Side Medical Research Center General		hospital		1.0173769	33.9528821
+Budaka HC		hospital		1.0173769	33.9528821
+Kiryandongo General		hospital		1.8791900	32.0618093
+Nakasongola Military General		hospital		1.3229326	32.4661016
+Tumu General		hospital		-0.1304335	30.4482107
+Ibanda General		hospital		-0.1301105	30.4481182
+Rushere Community General		hospital		-0.2103331	30.9479367
+Kiruhura		hospital		-0.2078870	30.8430960
+Bushenyi		hospital		-0.5410605	30.2001700
+Kitagata General		hospital		-0.6765883	30.1519688
+Sheema		hospital		-0.6153937	30.0483962
+Rukungiri		hospital		-0.7811020	29.9245165
+Bwindi Community General		hospital		-1.1566685	29.9809336
+Kambuga General		hospital		-1.4154622	30.0334784
+Kanungu		hospital		-0.7486215	29.6967029
+Kisoro General		hospital		-1.2831654	29.6372308
+Kabale Regional Referral		hospital		-1.2502061	29.9891117
+Rugarama General		hospital		-1.2410356	29.9742976
+Buliisa General		hospital		2.0576675	31.4357195
+Kibaale		hospital		0.7902967	31.0747089
+Kyenjojo General		hospital		0.7773063	30.5613960
+Kyegegwa		hospital		0.4840586	31.0534551
+Nebbi (Angal		hospital		2.4085618	31.1937693
+Angal General		hospital		2.4085167	31.1938412
+Nebbi General		hospital		2.4768732	31.0857538
+Maracha General		hospital		3.2362351	30.9217314
+Koboko General		hospital		3.4092643	30.9597404
+Yumbe General		hospital		3.4690623	31.2462343
+Arua Regional Referral		hospital		3.0199724	30.9138891
+Arua (Arua RR		hospital		3.0199724	30.9138891
+Kuluva General		hospital		2.9463677	30.9328159
+Oriajini General		hospital		3.0993814	30.9679144
+Pioneer General		hospital		3.0199724	30.9138891
+Rhema General		hospital		3.0199724	30.9138891
+Moyo General		hospital		3.6580568	31.7277545
+Adjumani General		hospital		3.3740875	31.7929480
+Zombo		hospital		2.5094625	30.9118642
+Nyapea General		hospital		2.4609624	30.9502883
+Anaka General		hospital		2.5997422	31.9479580
+Apac General		hospital		1.9788137	32.5334603
+Nightingale General		hospital		1.9788137	32.5334603
+Lira University General		hospital		2.2565868	32.8246057
+Oyam		hospital		2.2608036	33.2362812
+Aber General		hospital		2.2342527	32.3873748
+Lwala General		hospital		1.8594472	33.2783378
+Amai Community General		hospital		1.7904898	32.9206295
+Abim		hospital		2.6279242	33.6662233
+Amudat General		hospital		1.9535229	34.9433128
+Bukwo General General		hospital		1.9535229	34.9433128
+Kapchorwa General		hospital		1.4036000	34.4422053
+St. Joseph's General		hospital		3.2915115	32.8742106
+Padyere HSD Nebbi (Angal		hospital		2.4085618	31.1937693
+Vurra And Upper Madi HSD Kuluva General		hospital		2.9463677	30.9328159
