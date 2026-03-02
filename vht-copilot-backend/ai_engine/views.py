@@ -4,7 +4,7 @@ AI Engine Views - REST API endpoints
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.core.files.storage import default_storage
 from django.utils import timezone
@@ -202,3 +202,60 @@ def health_check(request):
         'rag_initialized': rag_engine.is_initialized,
         'openai_configured': bool(agent_runner.whisper.api_key)
     })
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])  # Allow unauthenticated for real-time translation during recording
+def translate_text(request):
+    """
+    Real-time English ↔ Luganda translation endpoint
+    Uses Google Translate API (FREE 500k chars/month)
+    """
+    try:
+        text = request.data.get('text')
+        target_language = request.data.get('target_language', 'lg')  # lg=Luganda, en=English
+        source_language = request.data.get('source_language', 'en')
+        
+        if not text:
+            return Response(
+                {'error': 'text is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Try Google Translate first (FREE)
+        try:
+            from .google_speech_service import google_translate_service
+            
+            if google_translate_service.is_available:
+                logger.info(f"Translating with Google: '{text[:50]}...' to {target_language}")
+                result = google_translate_service.translate_text(
+                    text=text,
+                    target_language=target_language,
+                    source_language=source_language
+                )
+                return Response(result)
+            else:
+                # Fallback: Return original text with warning
+                return Response({
+                    'translated_text': text,
+                    'detected_source_language': source_language,
+                    'confidence': 0.0,
+                    'warning': 'Google Translate not configured. Install google-cloud-translate.'
+                })
+        
+        except Exception as e:
+            logger.error(f"Translation failed: {e}")
+            # Fallback: Return original text
+            return Response({
+                'translated_text': text,
+                'detected_source_language': source_language,
+                'confidence': 0.0,
+                'error': str(e)
+            })
+    
+    except Exception as e:
+        logger.error(f"Translation endpoint failed: {e}")
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
