@@ -131,6 +131,62 @@ class ReferralViewSet(viewsets.ModelViewSet):
         }
         
         return Response(stats)
+    
+    @action(detail=True, methods=['post'])
+    def accept(self, request, pk=None):
+        """
+        Hospital staff accepts a referral
+        Updates status to CONFIRMED and notifies VHT
+        """
+        if request.user.role != 'HOSPITAL' or not request.user.hospital:
+            return Response(
+                {'error': 'Only hospital staff can accept referrals'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        referral = self.get_object()
+        
+        # Verify referral is for this hospital
+        if referral.hospital != request.user.hospital:
+            return Response(
+                {'error': 'This referral is not assigned to your hospital'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Only accept pending referrals
+        if referral.status != 'PENDING':
+            return Response(
+                {'error': f'Cannot accept referral with status {referral.status}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Update status
+        referral.status = 'CONFIRMED'
+        referral.hospital_notified = True
+        referral.hospital_notified_at = timezone.now()
+        referral.save()
+        
+        # TODO: Send notification to VHT (SMS/Push notification)
+        # For now, log it
+        from core.models import AuditLog
+        AuditLog.objects.create(
+            user=request.user,
+            action_type='REFERRAL_ACCEPTED',
+            description=f'Hospital accepted referral #{referral.referral_code}',
+            metadata={
+                'referral_id': referral.id,
+                'referral_code': referral.referral_code,
+                'patient_id': referral.patient.id,
+                'hospital_id': referral.hospital.id,
+            }
+        )
+        
+        serializer = self.get_serializer(referral)
+        return Response({
+            'success': True,
+            'message': 'Referral accepted successfully',
+            'referral': serializer.data
+        })
 
 
 class EmergencyAlertViewSet(viewsets.ReadOnlyModelViewSet):

@@ -3,7 +3,11 @@ Core URL Configuration
 """
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UserViewSet, HospitalViewSet, AuditLogViewSet, health_check, dashboard_stats, register_user, get_profile
+from .views import (
+    UserViewSet, HospitalViewSet, AuditLogViewSet, 
+    health_check, dashboard_stats, register_user, get_profile,
+    get_uganda_locations, find_nearest_hospitals_api
+)
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
@@ -15,5 +19,7 @@ urlpatterns = [
     path('auth/register/', register_user, name='register'),
     path('users/profile/', get_profile, name='user-profile'),
     path('dashboard/stats/', dashboard_stats, name='dashboard-stats'),
+    path('locations/', get_uganda_locations, name='uganda-locations'),
+    path('hospitals/find-nearest/', find_nearest_hospitals_api, name='find-nearest-hospitals'),
     path('', include(router.urls)),
 ]
