@@ -25,7 +25,8 @@ class UserViewSet(viewsets.ModelViewSet):
 class HospitalViewSet(viewsets.ModelViewSet):
     queryset = Hospital.objects.all()
     serializer_class = HospitalSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow unauthenticated access for registration
+    pagination_class = None  # Disable pagination - return all hospitals
     
     def get_queryset(self):
         queryset = Hospital.objects.filter(is_operational=True)
@@ -77,6 +78,113 @@ def health_check(request):
         'service': 'VHT Co-Pilot Backend',
         'version': '1.0.0'
     })
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_uganda_locations(request):
+    """
+    Get Uganda location data (districts, sub-counties, parishes, villages)
+    """
+    from .uganda_locations import get_all_districts, get_sub_counties, get_parishes, get_coordinates
+    from .uganda_villages import get_all_villages, get_village_coordinates, UGANDA_VILLAGES
+    
+    action = request.query_params.get('action', 'districts')
+    
+    if action == 'districts':
+        return Response({'districts': get_all_districts()})
+    
+    elif action == 'sub_counties':
+        district = request.query_params.get('district')
+        if not district:
+            return Response({'error': 'district parameter required'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'sub_counties': get_sub_counties(district)})
+    
+    elif action == 'parishes':
+        district = request.query_params.get('district')
+        sub_county = request.query_params.get('sub_county')
+        if not district or not sub_county:
+            return Response({'error': 'district and sub_county parameters required'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'parishes': get_parishes(district, sub_county)})
+    
+    elif action == 'coordinates':
+        district = request.query_params.get('district')
+        sub_county = request.query_params.get('sub_county')
+        if not district:
+            return Response({'error': 'district parameter required'}, status=status.HTTP_400_BAD_REQUEST)
+        coords = get_coordinates(district, sub_county)
+        if coords:
+            return Response(coords)
+        return Response({'error': 'Location not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    elif action == 'all_villages':
+        # Return all villages grouped by district
+        return Response({'villages': get_all_villages()})
+    
+    elif action == 'villages':
+        # Get villages for a specific district
+        district = request.query_params.get('district')
+        if not district:
+            return Response({'error': 'district parameter required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        district_villages = UGANDA_VILLAGES.get(district, {})
+        villages = [
+            {
+                'name': village_name,
+                'latitude': coords['latitude'],
+                'longitude': coords['longitude']
+            }
+            for village_name, coords in district_villages.items()
+        ]
+        return Response({'villages': villages})
+    
+    elif action == 'village_coordinates':
+        # Get coordinates for a specific village
+        village = request.query_params.get('village')
+        district = request.query_params.get('district')
+        if not village:
+            return Response({'error': 'village parameter required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        lat, lon = get_village_coordinates(village, district)
+        if lat and lon:
+            return Response({'latitude': lat, 'longitude': lon})
+        return Response({'error': 'Village not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    return Response({'error': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def find_nearest_hospitals_api(request):
+    """
+    Find nearest hospitals based on location and triage level
+    POST body: { latitude, longitude, triage_level, max_results }
+    """
+    from .uganda_locations import find_nearest_hospitals
+    
+    latitude = request.data.get('latitude')
+    longitude = request.data.get('longitude')
+    triage_level = request.data.get('triage_level', 'MODERATE')
+    max_results = request.data.get('max_results', 3)
+    
+    if latitude is None or longitude is None:
+        return Response(
+            {'error': 'latitude and longitude required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        latitude = float(latitude)
+        longitude = float(longitude)
+        max_results = int(max_results)
+    except ValueError:
+        return Response(
+            {'error': 'Invalid coordinate format'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    hospitals = find_nearest_hospitals(latitude, longitude, triage_level, max_results)
+    return Response({'hospitals': hospitals})
 
 
 @api_view(['POST'])
