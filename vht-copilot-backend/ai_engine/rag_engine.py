@@ -29,31 +29,43 @@ class RAGEngine:
     def initialize(self):
         """
         Initialize ChromaDB and embeddings
-        
-        TODO: Uncomment when OpenAI API key is provided
+        Supports both local (free) and OpenAI embeddings based on settings
         """
         try:
-            # from langchain.vectorstores import Chroma
-            # from langchain.embeddings import OpenAIEmbeddings
-            # from langchain.text_splitter import RecursiveCharacterTextSplitter
+            import os
+            # Workaround for Python 3.14 compatibility with ChromaDB
+            os.environ['ALLOW_RESET'] = 'TRUE'
             
-            logger.info("RAG Engine initialization...")
+            from langchain_chroma import Chroma
             
-            # # Initialize embeddings
-            # embeddings = OpenAIEmbeddings(
-            #     openai_api_key=settings.OPENAI_API_KEY
-            # )
+            # Choose embedding model based on settings
+            if settings.USE_LOCAL_EMBEDDINGS:
+                from langchain_huggingface import HuggingFaceEmbeddings
+                logger.info("RAG Engine initialization with LOCAL embeddings (FREE)...")
+                embeddings = HuggingFaceEmbeddings(
+                    model_name="sentence-transformers/all-MiniLM-L6-v2",
+                    model_kwargs={'device': 'cpu'},
+                    encode_kwargs={'normalize_embeddings': True}
+                )
+                logger.info("Using HuggingFace sentence-transformers (free, offline)")
+            else:
+                from langchain_openai import OpenAIEmbeddings
+                logger.info("RAG Engine initialization with OpenAI embeddings...")
+                embeddings = OpenAIEmbeddings(
+                    openai_api_key=settings.OPENAI_API_KEY
+                )
+                logger.info("Using OpenAI embeddings (requires API credits)")
             
-            # #Load existing ChromaDB or create new one
-            # self.vectorstore = Chroma(
-            #     collection_name=self.collection_name,
-            #     embedding_function=embeddings,
-            #     persist_directory=self.persist_directory
-            # )
+            # Load existing ChromaDB or create new one
+            self.vectorstore = Chroma(
+                collection_name=self.collection_name,
+                embedding_function=embeddings,
+                persist_directory=self.persist_directory
+            )
             
-            # self.retriever = self.vectorstore.as_retriever(
-            #     search_kwargs={"k": 3}  # Top 3 most relevant chunks
-            # )
+            self.retriever = self.vectorstore.as_retriever(
+                search_kwargs={"k": 3}  # Top 3 most relevant chunks
+            )
             
             self.is_initialized = True
             logger.info("RAG Engine initialized successfully")
@@ -68,40 +80,42 @@ class RAGEngine:
         
         Args:
             pdf_path: Path to the PDF file
-        
-        TODO: Call this once when PDF is provided
         """
         try:
-            # from langchain.document_loaders import PyPDFLoader
-            # from langchain.text_splitter import RecursiveCharacterTextSplitter
+            from langchain_community.document_loaders import PyPDFLoader
+            from langchain_text_splitters import RecursiveCharacterTextSplitter
             
             logger.info(f"Ingesting guidelines from {pdf_path}")
             
-            # # Load PDF
-            # loader = PyPDFLoader(pdf_path)
-            # documents = loader.load()
+            # Load PDF
+            loader = PyPDFLoader(pdf_path)
+            documents = loader.load()
             
-            # # Split into chunks
-            # text_splitter = RecursiveCharacterTextSplitter(
-            #     chunk_size=1000,
-            #     chunk_overlap=200,
-            #     separators=["\n\n", "\n", ". ", " "]
-            # )
-            # chunks = text_splitter.split_documents(documents)
+            logger.info(f"Loaded {len(documents)} pages from PDF")
             
-            # # Add metadata
-            # for i, chunk in enumerate(chunks):
-            #     chunk.metadata.update({
-            #         'page_number': chunk.metadata.get('page', i),
-            #         'source': 'Uganda_MoH_Guidelines',
-            #         'chunk_id': i
-            #     })
+            # Split into chunks
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1000,
+                chunk_overlap=200,
+                separators=["\n\n", "\n", ". ", " "]
+            )
+            chunks = text_splitter.split_documents(documents)
             
-            # # Store in ChromaDB
-            # self.vectorstore.add_documents(chunks)
-            # self.vectorstore.persist()
+            logger.info(f"Split into {len(chunks)} chunks")
             
-            logger.info(f"Successfully ingested guidelines")
+            # Add metadata
+            for i, chunk in enumerate(chunks):
+                chunk.metadata.update({
+                    'page_number': chunk.metadata.get('page', i),
+                    'source': 'Uganda_MoH_Guidelines',
+                    'chunk_id': i
+                })
+            
+            # Store in ChromaDB
+            logger.info("Storing embeddings in ChromaDB...")
+            self.vectorstore.add_documents(chunks)
+            
+            logger.info(f"Successfully ingested {len(chunks)} chunks from guidelines")
             return True
             
         except Exception as e:
@@ -133,28 +147,18 @@ class RAGEngine:
             # Build query
             query = f"Patient: {age} years, {gender}. Symptoms: {', '.join(symptoms)}"
             
-            # # Retrieve relevant chunks
-            # results = self.retriever.get_relevant_documents(query)
+            # Retrieve relevant chunks
+            results = self.retriever.get_relevant_documents(query)
             
-            # # Format results
-            # context = []
-            # for doc in results:
-            #     context.append({
-            #         'content': doc.page_content,
-            #         'page_number': doc.metadata.get('page_number'),
-            #         'condition': doc.metadata.get('condition', ''),
-            #         'source': doc.metadata.get('source', '')
-            #     })
-            
-            # Placeholder return until OpenAI key is added
-            context = [
-                {
-                    'content': 'Guideline context will be retrieved here once RAG is initialized with Uganda MoH guidelines.',
-                    'page_number': 0,
-                    'condition': '',
-                    'source': 'Placeholder'
-                }
-            ]
+            # Format results
+            context = []
+            for doc in results:
+                context.append({
+                    'content': doc.page_content,
+                    'page_number': doc.metadata.get('page_number'),
+                    'condition': doc.metadata.get('condition', ''),
+                    'source': doc.metadata.get('source', '')
+                })
             
             return context
             

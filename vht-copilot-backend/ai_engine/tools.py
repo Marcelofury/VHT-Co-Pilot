@@ -200,10 +200,57 @@ Prepare for arrival.
         urgency_level: str
     ) -> Hospital:
         """
-        Find best hospital using load balancing and distance
+        Find nearest hospital using real Uganda location data
+        Uses GPS coordinates to calculate actual distance
         """
         try:
-            # Filter available hospitals
+            from core.uganda_locations import find_nearest_hospitals
+            
+            # If patient has GPS coordinates, use Uganda location data
+            if patient_location and all(patient_location):
+                latitude, longitude = patient_location
+                
+                # Map urgency level to triage level for location search
+                triage_level_map = {
+                    'URGENT': 'URGENT',
+                    'HIGH_RISK': 'HIGH_RISK',
+                    'MODERATE': 'MODERATE',
+                    'STABLE': 'LOW_RISK'
+                }
+                triage_level = triage_level_map.get(urgency_level, 'MODERATE')
+                
+                # Get 3 nearest hospitals from Uganda locations data
+                nearest_hospitals = find_nearest_hospitals(
+                    latitude, longitude, triage_level, max_results=3
+                )
+                
+                # Try to find matching hospital in database by name and location
+                for hospital_data in nearest_hospitals:
+                    hospital = Hospital.objects.filter(
+                        name__iexact=hospital_data['name'],
+                        is_operational=True
+                    ).exclude(
+                        emergency_capacity_status=Hospital.CapacityStatus.FULL
+                    ).first()
+                    
+                    if hospital:
+                        logger.info(f"Matched nearest hospital: {hospital.name} ({hospital_data['distance_km']} km away)")
+                        return hospital
+                
+                # Fallback: find by similarity if exact match not found
+                for hospital_data in nearest_hospitals:
+                    hospital = Hospital.objects.filter(
+                        district=hospital_data['district'],
+                        is_operational=True
+                    ).exclude(
+                        emergency_capacity_status=Hospital.CapacityStatus.FULL
+                    ).order_by('current_active_referrals').first()
+                    
+                    if hospital:
+                        logger.warning(f"Using fallback hospital in same district: {hospital.name}")
+                        return hospital
+            
+            # Fallback to original logic if no GPS or no match found
             hospitals = Hospital.objects.filter(
                 is_operational=True,
                 specialties__icontains=specialty
@@ -220,6 +267,7 @@ Prepare for arrival.
                 )
             
             if not hospitals.exists():
+                logger.error("No operational hospitals available")
                 return None
             
             # If no patient location, return hospital with lowest load
@@ -243,7 +291,8 @@ Prepare for arrival.
             return scored_hospitals[0][1]
             
         except Exception as e:
-            logger.error(f"Hospital matching failed: {e}")
+            logger.error(f"Hospital matching failed: {e}", exc_info=True)
+            # Final fallback: any operational hospital
             return Hospital.objects.filter(is_operational=True).first()
     
     @staticmethod
