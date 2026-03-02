@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,9 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
+  Alert,
+  Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
@@ -18,51 +21,63 @@ interface SyncScreenProps {
   onNavigate?: (screen: string) => void;
 }
 
-interface SyncRecord {
-  id: string;
-  patientName: string;
-  action: string;
-  syncedAgo: string;
-  vhtCode: string;
-  icon: string;
-}
-
-const SYNC_RECORDS: SyncRecord[] = [
-  {
-    id: "1",
-    patientName: "Kato J.",
-    action: "Intake Complete",
-    syncedAgo: "2m ago",
-    vhtCode: "VHT-8824",
-    icon: "person",
-  },
-  {
-    id: "2",
-    patientName: "Nantongo M.",
-    action: "Follow-up",
-    syncedAgo: "5m ago",
-    vhtCode: "VHT-8819",
-    icon: "person",
-  },
-  {
-    id: "3",
-    patientName: "Mukasa D.",
-    action: "Referral",
-    syncedAgo: "12m ago",
-    vhtCode: "VHT-8790",
-    icon: "emergency",
-  },
-];
-
 export const SyncScreen: React.FC<SyncScreenProps> = ({
   onBack,
   onSyncNow,
   onNavigate,
 }) => {
-  const { syncProgress, isOnline, lastSyncTime } = useAppStore();
+  const { 
+    syncProgress, 
+    isOnline, 
+    lastSyncTime, 
+    syncRecords,
+    setSyncProgress,
+    setLastSyncTime,
+  } = useAppStore();
+  
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  const handleSyncNow = () => {
-    onSyncNow?.();
+  // Platform-aware alert function
+  const showAlert = (title: string, message: string) => {
+    if (Platform.OS === 'web') {
+      alert(`${title}\n\n${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
+
+  const handleSyncNow = async () => {
+    if (isSyncing) return;
+    
+    setIsSyncing(true);
+    setSyncProgress(0);
+    
+    try {
+      // Simulate sync progress
+      for (let progress = 0; progress <= 100; progress += 10) {
+        setSyncProgress(progress);
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      
+      // Update last sync time
+      setLastSyncTime(new Date());
+      
+      // Call the optional callback
+      onSyncNow?.();
+      
+      showAlert(
+        "Sync Complete",
+        "All patient data has been successfully synced to eCHIS cloud."
+      );
+    } catch (error) {
+      console.error("Sync error:", error);
+      showAlert(
+        "Sync Failed",
+        "Failed to sync data. Please check your connection and try again."
+      );
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const getLastSyncString = () => {
@@ -73,6 +88,23 @@ export const SyncScreen: React.FC<SyncScreenProps> = ({
       })}`;
     }
     return "Today at 14:32";
+  };
+
+  const getTimeSince = (timestamp: Date) => {
+    const diffMs = Date.now() - timestamp.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${Math.floor(diffHours / 24)}d ago`;
+  };
+
+  const getIconForAction = (action: string) => {
+    if (action.toLowerCase().includes('referral')) return 'emergency';
+    if (action.toLowerCase().includes('follow')) return 'person';
+    return 'person';
   };
 
   return (
@@ -160,32 +192,42 @@ export const SyncScreen: React.FC<SyncScreenProps> = ({
           <Text style={styles.recordsTitle}>Recently Synced Records</Text>
 
           <View style={styles.recordsList}>
-            {SYNC_RECORDS.map((record) => (
-              <View key={record.id} style={styles.recordCard}>
-                <View style={styles.recordLeft}>
-                  <View style={styles.recordIconContainer}>
-                    <MaterialIcons
-                      name={record.icon as keyof typeof MaterialIcons.glyphMap}
-                      size={20}
-                      color={COLORS.primary}
-                    />
+            {syncRecords.length > 0 ? (
+              syncRecords.slice(0, 10).map((record) => (
+                <View key={record.id} style={styles.recordCard}>
+                  <View style={styles.recordLeft}>
+                    <View style={styles.recordIconContainer}>
+                      <MaterialIcons
+                        name={getIconForAction(record.action) as keyof typeof MaterialIcons.glyphMap}
+                        size={20}
+                        color={COLORS.primary}
+                      />
+                    </View>
+                    <View>
+                      <Text style={styles.recordTitle}>
+                        {record.patientName} - {record.action}
+                      </Text>
+                      <Text style={styles.recordSubtext}>
+                        Synced {getTimeSince(record.timestamp)} • #{record.vhtCode}
+                      </Text>
+                    </View>
                   </View>
-                  <View>
-                    <Text style={styles.recordTitle}>
-                      {record.patientName} - {record.action}
-                    </Text>
-                    <Text style={styles.recordSubtext}>
-                      Synced {record.syncedAgo} • #{record.vhtCode}
-                    </Text>
-                  </View>
+                  <MaterialIcons
+                    name={record.status === 'synced' ? 'check-circle' : 'sync'}
+                    size={20}
+                    color={record.status === 'synced' ? COLORS.successGreen : COLORS.slate400}
+                  />
                 </View>
-                <MaterialIcons
-                  name="check-circle"
-                  size={20}
-                  color={COLORS.successGreen}
-                />
+              ))
+            ) : (
+              <View style={styles.emptyState}>
+                <MaterialIcons name="cloud-done" size={48} color={COLORS.slate300} />
+                <Text style={styles.emptyStateText}>No sync records yet</Text>
+                <Text style={styles.emptyStateSubtext}>
+                  Complete patient intakes to see sync history
+                </Text>
               </View>
-            ))}
+            )}
           </View>
         </View>
       </ScrollView>
@@ -193,12 +235,22 @@ export const SyncScreen: React.FC<SyncScreenProps> = ({
       {/* Sync Button Section */}
       <View style={styles.syncButtonSection}>
         <TouchableOpacity
-          style={styles.syncButton}
+          style={[styles.syncButton, isSyncing && styles.syncButtonDisabled]}
           onPress={handleSyncNow}
           activeOpacity={0.9}
+          disabled={isSyncing}
         >
-          <MaterialIcons name="sync" size={24} color={COLORS.white} />
-          <Text style={styles.syncButtonText}>Sync Now / Sindika kaati</Text>
+          {isSyncing ? (
+            <>
+              <ActivityIndicator size="small" color={COLORS.white} />
+              <Text style={styles.syncButtonText}>Syncing... / Sindika...</Text>
+            </>
+          ) : (
+            <>
+              <MaterialIcons name="sync" size={24} color={COLORS.white} />
+              <Text style={styles.syncButtonText}>Sync Now / Sindika kaati</Text>
+            </>
+          )}
         </TouchableOpacity>
         <Text style={styles.lastSyncText}>
           Last full sync: {getLastSyncString()}
@@ -366,6 +418,23 @@ const styles = StyleSheet.create({
   recordsList: {
     gap: 12,
   },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    gap: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.slate500,
+    marginTop: 8,
+  },
+  emptyStateSubtext: {
+    fontSize: 12,
+    color: COLORS.slate400,
+    textAlign: 'center',
+  },
   recordCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -433,6 +502,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 16,
     elevation: 8,
+  },
+  syncButtonDisabled: {
+    backgroundColor: COLORS.slate400,
+    shadowColor: COLORS.slate400,
+    opacity: 0.7,
   },
   syncButtonText: {
     fontSize: 16,

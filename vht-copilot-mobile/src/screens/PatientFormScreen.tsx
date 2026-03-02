@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,10 +11,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Modal,
+  FlatList,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
-import { patientAPI } from "../services/api";
+import { patientAPI, locationAPI } from "../services/api";
 
 interface PatientFormScreenProps {
   onBack?: () => void;
@@ -29,10 +31,73 @@ export const PatientFormScreen: React.FC<PatientFormScreenProps> = ({
   const [lastName, setLastName] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"MALE" | "FEMALE" | "">("");
+  const [district, setDistrict] = useState("");
   const [village, setVillage] = useState("");
+  const [latitude, setLatitude] = useState<number | undefined>(undefined);
+  const [longitude, setLongitude] = useState<number | undefined>(undefined);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  
+  // Modal states
+  const [showDistrictModal, setShowDistrictModal] = useState(false);
+  const [showVillageModal, setShowVillageModal] = useState(false);
+  const [districts, setDistricts] = useState<string[]>([]);
+  const [villages, setVillages] = useState<Array<{name: string; latitude: number; longitude: number}>>([]);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
+  const [loadingVillages, setLoadingVillages] = useState(false);
+
+  // Fetch districts on mount
+  useEffect(() => {
+    fetchDistricts();
+  }, []);
+
+  // Fetch villages when district changes
+  useEffect(() => {
+    if (district) {
+      fetchVillages(district);
+    }
+  }, [district]);
+
+  const fetchDistricts = async () => {
+    setLoadingDistricts(true);
+    try {
+      const districtsList = await locationAPI.getDistricts();
+      setDistricts(districtsList.sort());
+    } catch (error) {
+      console.error("Error fetching districts:", error);
+    } finally {
+      setLoadingDistricts(false);
+    }
+  };
+
+  const fetchVillages = async (selectedDistrict: string) => {
+    setLoadingVillages(true);
+    try {
+      const villagesList = await locationAPI.getVillages(selectedDistrict);
+      setVillages(villagesList);
+    } catch (error) {
+      console.error("Error fetching villages:", error);
+      setVillages([]);
+    } finally {
+      setLoadingVillages(false);
+    }
+  };
+
+  const selectDistrict = (dist: string) => {
+    setDistrict(dist);
+    setVillage(""); // Reset village when district changes
+    setLatitude(undefined);
+    setLongitude(undefined);
+    setShowDistrictModal(false);
+  };
+
+  const selectVillage = (villageData: {name: string; latitude: number; longitude: number}) => {
+    setVillage(villageData.name);
+    setLatitude(villageData.latitude);
+    setLongitude(villageData.longitude);
+    setShowVillageModal(false);
+  };
 
   // Generate unique VHT code
   const generateVHTCode = () => {
@@ -59,6 +124,10 @@ export const PatientFormScreen: React.FC<PatientFormScreenProps> = ({
       setError("Please select gender");
       return;
     }
+    if (!district.trim()) {
+      setError("District is required");
+      return;
+    }
     if (!village.trim()) {
       setError("Village is required");
       return;
@@ -68,7 +137,7 @@ export const PatientFormScreen: React.FC<PatientFormScreenProps> = ({
     setError("");
 
     try {
-      console.log("Creating patient:", { firstName, lastName, age, gender, village, phoneNumber });
+      console.log("Creating patient:", { firstName, lastName, age, gender, village, district, latitude, longitude });
       
       // Backend expects snake_case, and we cast to any since the full Patient type
       // includes server-generated fields (id, vhtCode, triageLevel, etc.)
@@ -79,6 +148,8 @@ export const PatientFormScreen: React.FC<PatientFormScreenProps> = ({
         age: age, // Backend accepts string for age (e.g., "8mo" or "42")
         gender: gender, // MALE or FEMALE
         village: village,
+        latitude: latitude,
+        longitude: longitude,
         phone_number: phoneNumber || undefined,
       };
 
@@ -234,19 +305,48 @@ export const PatientFormScreen: React.FC<PatientFormScreenProps> = ({
               </View>
             </View>
 
+            {/* District */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                District <Text style={styles.required}>*</Text>
+              </Text>
+              <TouchableOpacity
+                style={styles.dropdownButton}
+                onPress={() => setShowDistrictModal(true)}
+              >
+                <Text style={[styles.dropdownButtonText, !district && styles.placeholderText]}>
+                  {district || "Select District"}
+                </Text>
+                <MaterialIcons name="arrow-drop-down" size={24} color={COLORS.slate400} />
+              </TouchableOpacity>
+            </View>
+
             {/* Village */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>
                 Village <Text style={styles.required}>*</Text>
               </Text>
-              <TextInput
-                style={styles.input}
-                value={village}
-                onChangeText={setVillage}
-                placeholder="Enter village name"
-                placeholderTextColor={COLORS.slate300}
-                autoCapitalize="words"
-              />
+              <TouchableOpacity
+                style={styles.dropdownButton}
+                onPress={() => {
+                  if (!district) {
+                    setError("Please select a district first");
+                    return;
+                  }
+                  setShowVillageModal(true);
+                }}
+                disabled={!district}
+              >
+                <Text style={[styles.dropdownButtonText, !village && styles.placeholderText]}>
+                  {village || "Select Village"}
+                </Text>
+                <MaterialIcons name="arrow-drop-down" size={24} color={COLORS.slate400} />
+              </TouchableOpacity>
+              {latitude && longitude && (
+                <Text style={styles.gpsInfo}>
+                  GPS: {latitude.toFixed(4)}, {longitude.toFixed(4)}
+                </Text>
+              )}
             </View>
 
             {/* Phone Number (Optional) */}
@@ -291,6 +391,95 @@ export const PatientFormScreen: React.FC<PatientFormScreenProps> = ({
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      {/* District Selection Modal */}
+      <Modal
+        visible={showDistrictModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowDistrictModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select District</Text>
+              <TouchableOpacity onPress={() => setShowDistrictModal(false)}>
+                <MaterialIcons name="close" size={24} color={COLORS.deepBlue} />
+              </TouchableOpacity>
+            </View>
+            {loadingDistricts ? (
+              <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: 20 }} />
+            ) : (
+              <FlatList
+                data={districts}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[styles.modalItem, district === item && styles.modalItemActive]}
+                    onPress={() => selectDistrict(item)}
+                  >
+                    <Text style={[styles.modalItemText, district === item && styles.modalItemTextActive]}>
+                      {item}
+                    </Text>
+                    {district === item && (
+                      <MaterialIcons name="check" size={20} color={COLORS.primary} />
+                    )}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Village Selection Modal */}
+      <Modal
+        visible={showVillageModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowVillageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Village - {district}</Text>
+              <TouchableOpacity onPress={() => setShowVillageModal(false)}>
+                <MaterialIcons name="close" size={24} color={COLORS.deepBlue} />
+              </TouchableOpacity>
+            </View>
+            {loadingVillages ? (
+              <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: 20 }} />
+            ) : villages.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>No villages found for {district}</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={villages}
+                keyExtractor={(item) => item.name}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[styles.modalItem, village === item.name && styles.modalItemActive]}
+                    onPress={() => selectVillage(item)}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.modalItemText, village === item.name && styles.modalItemTextActive]}>
+                        {item.name}
+                      </Text>
+                      <Text style={styles.modalItemSubtext}>
+                        GPS: {item.latitude.toFixed(4)}, {item.longitude.toFixed(4)}
+                      </Text>
+                    </View>
+                    {village === item.name && (
+                      <MaterialIcons name="check" size={20} color={COLORS.primary} />
+                    )}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -484,5 +673,91 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: COLORS.white,
+  },
+  dropdownButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: COLORS.slate50,
+    borderWidth: 1,
+    borderColor: COLORS.slate200,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  dropdownButtonText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: COLORS.deepBlue,
+  },
+  placeholderText: {
+    color: COLORS.slate300,
+  },
+  gpsInfo: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: COLORS.softGreen,
+    marginTop: 6,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    maxHeight: "70%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.slate100,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: COLORS.deepBlue,
+  },
+  modalItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.slate50,
+  },
+  modalItemActive: {
+    backgroundColor: COLORS.softBlue,
+  },
+  modalItemText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: COLORS.deepBlue,
+  },
+  modalItemTextActive: {
+    color: COLORS.primary,
+  },
+  modalItemSubtext: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: COLORS.slate400,
+    marginTop: 4,
+  },
+  emptyState: {
+    padding: 40,
+    alignItems: "center",
+  },
+  emptyStateText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.slate400,
   },
 });

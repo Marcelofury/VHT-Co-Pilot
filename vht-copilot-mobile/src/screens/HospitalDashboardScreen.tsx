@@ -9,6 +9,8 @@ import {
   StatusBar,
   ActivityIndicator,
   RefreshControl,
+  Alert,
+  Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
@@ -48,6 +50,7 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
   });
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [lastNotificationCount, setLastNotificationCount] = useState(0);
 
   const loadData = async () => {
     try {
@@ -59,6 +62,27 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
       
       setReferrals(referralsData as any);
       setStats(statsData);
+      
+      // Check for new urgent referrals (real-time notification)
+      const urgentCount = (referralsData as any[]).filter(
+        (r: any) => r.triage_level === 'URGENT' && r.status === 'PENDING'
+      ).length;
+      
+      if (urgentCount > lastNotificationCount && lastNotificationCount > 0) {
+        // New urgent referral arrived!
+        const newReferrals = urgentCount - lastNotificationCount;
+        if (Platform.OS === 'web') {
+          alert(`🚨 NEW URGENT REFERRAL\n\n${newReferrals} new urgent patient(s) need immediate attention!`);
+        } else {
+          Alert.alert(
+            "🚨 Urgent Referral",
+            `${newReferrals} new urgent patient(s) need immediate attention!`,
+            [{ text: "View Now", style: "default" }]
+          );
+        }
+      }
+      setLastNotificationCount(urgentCount);
+      
     } catch (error) {
       console.error("Error loading referrals:", error);
       // Set empty data on error
@@ -78,11 +102,47 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
 
   useEffect(() => {
     loadData();
-  }, []);
+    
+    // Real-time polling: Check for new referrals every 30 seconds
+    const pollInterval = setInterval(() => {
+      console.log('Polling for new referrals...');
+      loadData();
+    }, 30000); // 30 seconds
+    
+    return () => clearInterval(pollInterval);
+  }, [lastNotificationCount]);
 
   const onRefresh = () => {
     setRefreshing(true);
     loadData();
+  };
+
+  const handleAcceptReferral = async (referralId: string) => {
+    try {
+      const result = await referralAPI.acceptReferral(referralId);
+      if (result.success) {
+        // Show success message
+        if (Platform.OS === 'web') {
+          alert(`✅ ${result.message}\n\nReferral accepted successfully. VHT has been notified.`);
+        } else {
+          Alert.alert(
+            "Referral Accepted",
+            result.message + "\n\nVHT has been notified.",
+            [{ text: "OK" }]
+          );
+        }
+        // Reload data to show updated status
+        loadData();
+      }
+    } catch (error: any) {
+      console.error("Error accepting referral:", error);
+      const errorMessage = error.response?.data?.error || "Failed to accept referral. Please try again.";
+      if (Platform.OS === 'web') {
+        alert(`❌ Error\n\n${errorMessage}`);
+      } else {
+        Alert.alert("Error", errorMessage, [{ text: "OK" }]);
+      }
+    }
   };
 
   const getTriageColor = (level: string) => {
@@ -239,9 +299,7 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
                 <View style={styles.actionButtons}>
                   <TouchableOpacity
                     style={[styles.actionButton, styles.acceptButton]}
-                    onPress={() => {
-                      console.log("Accept referral:", referral.id);
-                    }}
+                    onPress={() => handleAcceptReferral(referral.id)}
                   >
                     <MaterialIcons name="check" size={18} color={COLORS.white} />
                     <Text style={styles.actionButtonText}>Accept</Text>

@@ -332,6 +332,11 @@ export const referralAPI = {
     const response = await api.get("/referrals/hospital_stats/");
     return response.data;
   },
+
+  acceptReferral: async (referralId: string): Promise<{ success: boolean; message: string; referral: any }> => {
+    const response = await api.post(`/referrals/${referralId}/accept/`);
+    return response.data;
+  },
 };
 
 // Sync API
@@ -448,6 +453,64 @@ export const hospitalAPI = {
       params: { latitude, longitude, max_distance: maxDistance || 50 },
     });
     return response.data;
+  },
+};
+
+// Location API
+export const locationAPI = {
+  getDistricts: async (): Promise<string[]> => {
+    const response = await api.get("/locations/", { params: { action: 'districts' } });
+    return response.data.districts;
+  },
+
+  getSubCounties: async (district: string): Promise<string[]> => {
+    const response = await api.get("/locations/", { 
+      params: { action: 'sub_counties', district } 
+    });
+    return response.data.sub_counties;
+  },
+
+  getParishes: async (district: string, subCounty: string): Promise<string[]> => {
+    const response = await api.get("/locations/", { 
+      params: { action: 'parishes', district, sub_county: subCounty } 
+    });
+    return response.data.parishes;
+  },
+
+  getCoordinates: async (district: string, subCounty?: string): Promise<{ latitude: number; longitude: number }> => {
+    const response = await api.get("/locations/", { 
+      params: { action: 'coordinates', district, sub_county: subCounty } 
+    });
+    return response.data;
+  },
+
+  getVillages: async (district: string): Promise<Array<{name: string; latitude: number; longitude: number}>> => {
+    const response = await api.get("/locations/", {
+      params: { action: 'villages', district }
+    });
+    return response.data.villages;
+  },
+
+  getVillageCoordinates: async (village: string, district?: string): Promise<{ latitude: number; longitude: number }> => {
+    const response = await api.get("/locations/", {
+      params: { action: 'village_coordinates', village, district }
+    });
+    return response.data;
+  },
+
+  findNearestHospitals: async (
+    latitude: number,
+    longitude: number,
+    triageLevel: string = 'MODERATE',
+    maxResults: number = 3
+  ): Promise<any[]> => {
+    const response = await api.post("/hospitals/find-nearest/", {
+      latitude,
+      longitude,
+      triage_level: triageLevel,
+      max_results: maxResults
+    });
+    return response.data.hospitals;
   },
 };
 

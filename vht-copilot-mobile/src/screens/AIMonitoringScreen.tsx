@@ -32,84 +32,6 @@ interface StatCard {
   valueColor: string;
 }
 
-interface AIDecision {
-  id: string;
-  title: string;
-  description: string;
-  timeAgo: string;
-  icon: string;
-  iconBgColor: string;
-  iconColor: string;
-  tags?: { label: string; bgColor: string; textColor: string }[];
-}
-
-const STAT_CARDS: StatCard[] = [
-  {
-    label: "Agent Sync",
-    value: "Live",
-    bgColor: "#F0F7FF",
-    borderColor: "#E3F2FD",
-    labelColor: COLORS.primary,
-    valueColor: COLORS.deepBlue,
-  },
-  {
-    label: "AI Actions",
-    value: "24",
-    bgColor: "#F2FDF5",
-    borderColor: "#dcfce7",
-    labelColor: "#15803d",
-    valueColor: "#166534",
-  },
-  {
-    label: "Alerts",
-    value: "02",
-    bgColor: "#FFF9E6",
-    borderColor: "#fef3c7",
-    labelColor: "#a16207",
-    valueColor: "#854d0e",
-  },
-];
-
-const AI_DECISIONS: AIDecision[] = [
-  {
-    id: "1",
-    title: "Kato J. Referred to Hospital",
-    description:
-      "Autonomous triage detected acute respiratory distress. Hospital notified.",
-    timeAgo: "2m ago",
-    icon: "share",
-    iconBgColor: "#fef2f2",
-    iconColor: "#ef4444",
-    tags: [
-      { label: "Urgent", bgColor: COLORS.slate100, textColor: COLORS.slate500 },
-      {
-        label: "Referral Code: #V881",
-        bgColor: "#eff6ff",
-        textColor: COLORS.primary,
-      },
-    ],
-  },
-  {
-    id: "2",
-    title: "Mukasa L. Follow-up Scheduled",
-    description:
-      "Malaria treatment course Day 2 check-in completed via voice link.",
-    timeAgo: "15m ago",
-    icon: "medication",
-    iconBgColor: "#f0fdf4",
-    iconColor: "#22c55e",
-  },
-  {
-    id: "3",
-    title: "Zone 4 Risk Assessment",
-    description: "Updated community risk map based on 14 new intake trends.",
-    timeAgo: "1h ago",
-    icon: "analytics",
-    iconBgColor: "#eff6ff",
-    iconColor: COLORS.primary,
-  },
-];
-
 export const AIMonitoringScreen: React.FC<AIMonitoringScreenProps> = ({
   onNavigate,
   onManualIntake,
@@ -118,7 +40,13 @@ export const AIMonitoringScreen: React.FC<AIMonitoringScreenProps> = ({
   onSettings,
   onOverride,
 }) => {
-  const { currentUser, lastSyncTime } = useAppStore();
+  const { 
+    currentUser, 
+    lastSyncTime, 
+    aiActions, 
+    isOnline, 
+    syncProgress 
+  } = useAppStore();
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -149,6 +77,74 @@ export const AIMonitoringScreen: React.FC<AIMonitoringScreenProps> = ({
     return "2 minutes ago";
   };
 
+  const getTimeSince = (timestamp: Date) => {
+    const diffMs = Date.now() - timestamp.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${Math.floor(diffHours / 24)}d ago`;
+  };
+
+  const getIconForAction = (type: string) => {
+    switch (type) {
+      case 'referral': return 'share';
+      case 'triage': return 'local-hospital';
+      case 'assessment': return 'analytics';
+      default: return 'psychology';
+    }
+  };
+
+  const getIconColors = (type: string) => {
+    switch (type) {
+      case 'referral':
+        return { bg: '#fee2e2', color: '#dc2626' };
+      case 'triage':
+        return { bg: '#dcfce7', color: '#22c55e' };
+      case 'assessment':
+        return { bg: '#eff6ff', color: COLORS.primary };
+      default:
+        return { bg: COLORS.primaryLight, color: COLORS.primary };
+    }
+  };
+
+  // Calculate dynamic stats
+  const totalAIActions = aiActions.length;
+  const alertCount = aiActions.filter(a => 
+    a.type === 'referral' || 
+    (a.aiReasoning && a.aiReasoning.toLowerCase().includes('urgent'))
+  ).length;
+  const syncStatus = isOnline ? 'Live' : 'Offline';
+  
+  const STAT_CARDS: StatCard[] = [
+    {
+      label: "Agent Sync",
+      value: syncStatus,
+      bgColor: "#F0F7FF",
+      borderColor: "#E3F2FD",
+      labelColor: COLORS.primary,
+      valueColor: COLORS.deepBlue,
+    },
+    {
+      label: "AI Actions",
+      value: totalAIActions.toString(),
+      bgColor: "#F2FDF5",
+      borderColor: "#dcfce7",
+      labelColor: "#15803d",
+      valueColor: "#166534",
+    },
+    {
+      label: "Alerts",
+      value: alertCount.toString().padStart(2, '0'),
+      bgColor: "#FFF9E6",
+      borderColor: "#fef3c7",
+      labelColor: "#a16207",
+      valueColor: "#854d0e",
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
@@ -156,67 +152,70 @@ export const AIMonitoringScreen: React.FC<AIMonitoringScreenProps> = ({
         backgroundColor={COLORS.triageYellow}
       />
 
-      {/* Community Alert Bar */}
-      <View style={styles.alertBar}>
-        <View style={styles.alertLeft}>
-          <MaterialIcons name="warning" size={18} color="#000" />
-          <Text style={styles.alertText}>
-            Community Alert: Moderate Malaria Risk
-          </Text>
-        </View>
-        <View style={styles.alertTag}>
-          <Text style={styles.alertTagText}>Zone 4</Text>
-        </View>
-      </View>
-
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View>
-            <Text style={styles.headerTitle}>Co-Pilot Monitoring</Text>
-            <Text style={styles.headerSubtitle}>VHT Autonomous Agent</Text>
+      {/* Main Content - Everything scrolls together */}
+      <ScrollView
+        style={styles.mainScrollView}
+        showsVerticalScrollIndicator={false}
+        bounces={true}
+      >
+        {/* Community Alert Bar */}
+        <View style={styles.alertBar}>
+          <View style={styles.alertLeft}>
+            <MaterialIcons name="warning" size={18} color="#000" />
+            <Text style={styles.alertText}>
+              Community Alert: Moderate Malaria Risk
+            </Text>
+          </View>
+          <View style={styles.alertTag}>
+            <Text style={styles.alertTagText}>Zone 4</Text>
           </View>
         </View>
-        <View style={styles.avatarContainer}>
-          <Image
-            source={{ uri: "https://i.pravatar.cc/100" }}
-            style={styles.avatar}
-          />
-        </View>
-      </View>
 
-      {/* Stats Cards */}
-      <View style={styles.statsContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {STAT_CARDS.map((card, index) => (
-            <View
-              key={index}
-              style={[
-                styles.statCard,
-                {
-                  backgroundColor: card.bgColor,
-                  borderColor: card.borderColor,
-                },
-              ]}
-            >
-              <Text style={[styles.statLabel, { color: card.labelColor }]}>
-                {card.label}
-              </Text>
-              <Text style={[styles.statValue, { color: card.valueColor }]}>
-                {card.value}
-              </Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <View>
+              <Text style={styles.headerTitle}>Co-Pilot Monitoring</Text>
+              <Text style={styles.headerSubtitle}>VHT Autonomous Agent</Text>
             </View>
-          ))}
-        </ScrollView>
-      </View>
+          </View>
+          <View style={styles.avatarContainer}>
+            <Image
+              source={{ uri: "https://i.pravatar.cc/100" }}
+              style={styles.avatar}
+            />
+          </View>
+        </View>
 
-      {/* Main Content */}
-      <ScrollView
-        style={styles.mainContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* AI Status Card */}
-        <View style={styles.aiStatusCard}>
+        {/* Stats Cards */}
+        <View style={styles.statsContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {STAT_CARDS.map((card, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.statCard,
+                  {
+                    backgroundColor: card.bgColor,
+                    borderColor: card.borderColor,
+                  },
+                ]}
+              >
+                <Text style={[styles.statLabel, { color: card.labelColor }]}>
+                  {card.label}
+                </Text>
+                <Text style={[styles.statValue, { color: card.valueColor }]}>
+                  {card.value}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Content Section with padding */}
+        <View style={styles.contentSection}>
+          {/* AI Status Card */}
+          <View style={styles.aiStatusCard}>
           {/* Pulse indicator */}
           <View style={styles.pulseContainer}>
             <Animated.View
@@ -282,53 +281,82 @@ export const AIMonitoringScreen: React.FC<AIMonitoringScreenProps> = ({
           </View>
 
           <View style={styles.decisionsList}>
-            {AI_DECISIONS.map((decision) => (
-              <View key={decision.id} style={styles.decisionCard}>
-                <View
-                  style={[
-                    styles.decisionIconContainer,
-                    { backgroundColor: decision.iconBgColor },
-                  ]}
-                >
-                  <MaterialIcons
-                    name={decision.icon as keyof typeof MaterialIcons.glyphMap}
-                    size={20}
-                    color={decision.iconColor}
-                  />
-                </View>
-                <View style={styles.decisionContent}>
-                  <View style={styles.decisionHeader}>
-                    <Text style={styles.decisionTitle}>{decision.title}</Text>
-                    <Text style={styles.decisionTime}>{decision.timeAgo}</Text>
-                  </View>
-                  <Text style={styles.decisionDescription}>
-                    {decision.description}
-                  </Text>
-                  {decision.tags && (
-                    <View style={styles.decisionTags}>
-                      {decision.tags.map((tag, idx) => (
+            {aiActions.length > 0 ? (
+              aiActions.slice(0, 5).map((action) => {
+                const iconColors = getIconColors(action.type);
+                return (
+                  <View key={action.id} style={styles.decisionCard}>
+                    <View
+                      style={[
+                        styles.decisionIconContainer,
+                        { backgroundColor: iconColors.bg },
+                      ]}
+                    >
+                      <MaterialIcons
+                        name={getIconForAction(action.type) as keyof typeof MaterialIcons.glyphMap}
+                        size={20}
+                        color={iconColors.color}
+                      />
+                    </View>
+                    <View style={styles.decisionContent}>
+                      <View style={styles.decisionHeader}>
+                        <Text style={styles.decisionTitle}>
+                          {action.patientName} - {action.type.charAt(0).toUpperCase() + action.type.slice(1)}
+                        </Text>
+                        <Text style={styles.decisionTime}>
+                          {getTimeSince(action.timestamp)}
+                        </Text>
+                      </View>
+                      <Text style={styles.decisionDescription}>
+                        {action.description}
+                      </Text>
+                      <View style={styles.decisionTags}>
                         <View
-                          key={idx}
                           style={[
                             styles.decisionTag,
-                            { backgroundColor: tag.bgColor },
+                            { backgroundColor: iconColors.bg },
                           ]}
                         >
                           <Text
                             style={[
                               styles.decisionTagText,
-                              { color: tag.textColor },
+                              { color: iconColors.color },
                             ]}
                           >
-                            {tag.label}
+                            {action.status}
                           </Text>
                         </View>
-                      ))}
+                        {action.confidence && (
+                          <View
+                            style={[
+                              styles.decisionTag,
+                              { backgroundColor: '#f0f9ff' },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.decisionTagText,
+                                { color: COLORS.primary },
+                              ]}
+                            >
+                              {Math.round(action.confidence * 100)}% Confident
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                     </View>
-                  )}
-                </View>
+                  </View>
+                );
+              })
+            ) : (
+              <View style={styles.emptyState}>
+                <MaterialIcons name="psychology" size={48} color={COLORS.slate300} />
+                <Text style={styles.emptyStateText}>No AI decisions yet</Text>
+                <Text style={styles.emptyStateSubtext}>
+                  Complete patient triage to see AI analysis here
+                </Text>
               </View>
-            ))}
+            )}
           </View>
         </View>
 
@@ -356,9 +384,10 @@ export const AIMonitoringScreen: React.FC<AIMonitoringScreenProps> = ({
             <Text style={styles.quickActionText}>My Patients</Text>
           </TouchableOpacity>
         </View>
+        </View>
       </ScrollView>
 
-      {/* Last Sync Status */}
+      {/* Last Sync Status - Fixed at bottom */}
       <View style={styles.lastSyncBar}>
         <View style={styles.syncDot} />
         <Text style={styles.lastSyncText}>
@@ -373,6 +402,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.slate50,
+  },
+  mainScrollView: {
+    flex: 1,
   },
   alertBar: {
     flexDirection: "row",
@@ -472,9 +504,9 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     marginTop: 4,
   },
-  mainContent: {
-    flex: 1,
+  contentSection: {
     padding: 16,
+    paddingBottom: 24,
   },
   aiStatusCard: {
     backgroundColor: COLORS.deepBlue,
@@ -618,6 +650,23 @@ const styles = StyleSheet.create({
   },
   decisionsList: {
     gap: 12,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    gap: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.slate500,
+    marginTop: 8,
+  },
+  emptyStateSubtext: {
+    fontSize: 12,
+    color: COLORS.slate400,
+    textAlign: 'center',
   },
   decisionCard: {
     flexDirection: "row",
