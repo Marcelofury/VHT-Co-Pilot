@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,10 +11,11 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Modal,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
-import { authAPI } from "../services/api";
+import { authAPI, hospitalAPI } from "../services/api";
 
 // Web-compatible alert
 const showAlert = (title: string, message: string, onOk?: () => void) => {
@@ -41,6 +42,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     role: "VHT", // VHT or HOSPITAL
     vhtId: "",
     hospitalCode: "",
+    hospitalId: "",
+    hospitalName: "",
     phone: "",
     village: "",
     district: "",
@@ -51,6 +54,42 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [hospitals, setHospitals] = useState<any[]>([]);
+  const [showHospitalModal, setShowHospitalModal] = useState(false);
+  const [loadingHospitals, setLoadingHospitals] = useState(false);
+
+  // Fetch hospitals on component mount
+  useEffect(() => {
+    fetchHospitals();
+  }, []);
+
+  const fetchHospitals = async () => {
+    setLoadingHospitals(true);
+    try {
+      const hospitalsList = await hospitalAPI.getAll();
+      setHospitals(hospitalsList);
+      console.log(`Loaded ${hospitalsList.length} hospitals`);
+    } catch (error) {
+      console.error("Error fetching hospitals:", error);
+      showAlert("Warning", "Could not load hospitals list. You can still register manually.");
+    } finally {
+      setLoadingHospitals(false);
+    }
+  };
+
+  const selectHospital = (hospital: any) => {
+    setFormData(prev => ({
+      ...prev,
+      hospitalId: hospital.id,
+      hospitalName: hospital.name,
+      hospitalCode: hospital.id.toString(), // Use ID as code for backend
+      district: hospital.district || prev.district, // Auto-populate district from hospital
+    }));
+    setShowHospitalModal(false);
+    
+    // Show success message
+    console.log(`Hospital selected: ${hospital.name} in ${hospital.district} district`);
+  };
 
   const updateField = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -303,15 +342,16 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 color={COLORS.slate400}
                 style={styles.inputIcon}
               />
-              <TextInput
-                style={styles.input}
-                placeholder="Hospital ID (e.g., HOSP-001)"
-                placeholderTextColor={COLORS.slate400}
-                value={formData.hospitalCode}
-                onChangeText={(value) => updateField("hospitalCode", value)}
-                autoCapitalize="characters"
-                editable={!isLoading}
-              />
+              <TouchableOpacity 
+                style={styles.hospitalSelector}
+                onPress={() => setShowHospitalModal(true)}
+                disabled={isLoading}
+              >
+                <Text style={formData.hospitalName ? styles.input : styles.placeholderText}>
+                  {formData.hospitalName || "Select Your Hospital"}
+                </Text>
+                <MaterialIcons name="arrow-drop-down" size={24} color={COLORS.slate400} />
+              </TouchableOpacity>
             </View>
           )}
 
@@ -362,12 +402,15 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
             />
             <TextInput
               style={styles.input}
-              placeholder="District"
+              placeholder={formData.hospitalName ? `District: ${formData.district || 'Select hospital first'}` : "District"}
               placeholderTextColor={COLORS.slate400}
               value={formData.district}
               onChangeText={(value) => updateField("district", value)}
-              editable={!isLoading}
+              editable={!isLoading && !formData.hospitalName}
             />
+            {formData.hospitalName && formData.district && (
+              <MaterialIcons name="check-circle" size={20} color={COLORS.successGreen} style={{ marginLeft: 8 }} />
+            )}
           </View>
 
           {/* Account Credentials */}
@@ -476,6 +519,54 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
           </View>
         </View>
       </ScrollView>
+
+      {/* Hospital Selection Modal */}
+      <Modal
+        visible={showHospitalModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowHospitalModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Your Hospital</Text>
+              <TouchableOpacity onPress={() => setShowHospitalModal(false)}>
+                <MaterialIcons name="close" size={24} color={COLORS.slate600} />
+              </TouchableOpacity>
+            </View>
+
+            {loadingHospitals ? (
+              <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: 20 }} />
+            ) : (
+              <ScrollView style={styles.hospitalList}>
+                {hospitals.length === 0 ? (
+                  <Text style={styles.noHospitalsText}>No hospitals available</Text>
+                ) : (
+                  hospitals.map((hospital) => (
+                    <TouchableOpacity
+                      key={hospital.id}
+                      style={styles.hospitalItem}
+                      onPress={() => selectHospital(hospital)}
+                    >
+                      <MaterialIcons name="local-hospital" size={24} color={COLORS.primary} />
+                      <View style={styles.hospitalInfo}>
+                        <Text style={styles.hospitalName}>{hospital.name}</Text>
+                        <Text style={styles.hospitalDetails}>
+                          {hospital.district} • {hospital.facility_type}
+                        </Text>
+                      </View>
+                      {formData.hospitalId === hospital.id && (
+                        <MaterialIcons name="check-circle" size={24} color={COLORS.successGreen} />
+                      )}
+                    </TouchableOpacity>
+                  ))
+                )}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -617,5 +708,70 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.primary,
     fontWeight: "600",
+  },
+  hospitalSelector: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 4,
+  },
+  placeholderText: {
+    fontSize: 15,
+    color: COLORS.slate400,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "80%",
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.slate200,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: COLORS.slate900,
+  },
+  hospitalList: {
+    paddingHorizontal: 20,
+  },
+  hospitalItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.slate100,
+    gap: 12,
+  },
+  hospitalInfo: {
+    flex: 1,
+  },
+  hospitalName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: COLORS.slate900,
+    marginBottom: 4,
+  },
+  hospitalDetails: {
+    fontSize: 13,
+    color: COLORS.slate500,
+  },
+  noHospitalsText: {
+    textAlign: "center",
+    color: COLORS.slate400,
+    padding: 20,
   },
 });
