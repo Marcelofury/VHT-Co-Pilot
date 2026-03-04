@@ -67,6 +67,7 @@ class Hospital(models.Model):
     name = models.CharField(max_length=200)
     facility_type = models.CharField(max_length=20, choices=FacilityType.choices)
     district = models.CharField(max_length=100)
+    sub_county = models.CharField(max_length=100, blank=True, null=True)
     address = models.TextField()
     latitude = models.FloatField()
     longitude = models.FloatField()
@@ -118,6 +119,54 @@ class Hospital(models.Model):
         )
 
 
+class District(models.Model):
+    """
+    Uganda Districts with GPS coordinates
+    """
+    name = models.CharField(max_length=100, unique=True, db_index=True)
+    region = models.CharField(max_length=50, help_text="Central, Eastern, Northern, Western")
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    village_count = models.IntegerField(default=0, help_text="Number of villages in this district")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'districts'
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['region']),
+        ]
+    
+    def __str__(self):
+        return f"{self.name} ({self.region})"
+
+
+class Village(models.Model):
+    """
+    Uganda Villages with GPS coordinates
+    """
+    name = models.CharField(max_length=100, db_index=True)
+    district = models.ForeignKey(District, on_delete=models.CASCADE, related_name='villages')
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'villages'
+        ordering = ['district', 'name']
+        unique_together = [['name', 'district']]
+        indexes = [
+            models.Index(fields=['district', 'name']),
+            models.Index(fields=['latitude', 'longitude']),
+        ]
+    
+    def __str__(self):
+        return f"{self.name}, {self.district.name}"
+
+
 class AuditLog(models.Model):
     """
     Comprehensive audit logging for compliance and analytics
@@ -147,3 +196,35 @@ class AuditLog(models.Model):
     
     def __str__(self):
         return f"{self.get_action_type_display()} by {self.user} at {self.timestamp}"
+
+
+class Notification(models.Model):
+    """
+    User notifications for referrals, alerts, etc.
+    """
+    class NotificationType(models.TextChoices):
+        REFERRAL_ACCEPTED = 'REFERRAL_ACCEPTED', _('Referral Accepted')
+        REFERRAL_UPDATED = 'REFERRAL_UPDATED', _('Referral Updated')
+        PATIENT_ARRIVED = 'PATIENT_ARRIVED', _('Patient Arrived')
+        COMPLETED = 'COMPLETED', _('Treatment Completed')
+        ALERT = 'ALERT', _('Emergency Alert')
+        INFO = 'INFO', _('Information')
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    notification_type = models.CharField(max_length=30, choices=NotificationType.choices)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    metadata = models.JSONField(default=dict, help_text="Additional data like referral_id, patient_id")
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'notifications'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['is_read']),
+        ]
+    
+    def __str__(self):
+        return f"{self.title} - {self.user.username}"
