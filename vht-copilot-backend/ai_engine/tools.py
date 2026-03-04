@@ -129,11 +129,17 @@ Prepare for arrival.
             Referral details
         """
         try:
-            # Find best hospital
+            # Get patient's district (from patient record or VHT user)
+            patient_district = patient.district or (user.district if hasattr(user, 'district') else None)
+            
+            logger.info(f"Patient: {patient.full_name}, Village: {patient.village}, District: {patient_district}")
+            
+            # Find best hospital (prioritizes district-based matching)
             hospital = AITools._find_best_hospital(
                 patient_location=(patient.latitude, patient.longitude) if patient.latitude else None,
                 specialty=specialty,
-                urgency_level=urgency_level
+                urgency_level=urgency_level,
+                patient_district=patient_district
             )
             
             if not hospital:
@@ -159,7 +165,7 @@ Prepare for arrival.
                 recommended_specialty=specialty,
                 first_aid_instructions=first_aid_instructions,
                 ai_reasoning=ai_reasoning,
-                guideline_citation=guideline_citation,
+                guideline_citation=guideline_citation or '',  # Default to empty string if None
                 status='PENDING'
             )
             
@@ -197,16 +203,60 @@ Prepare for arrival.
     def _find_best_hospital(
         patient_location: tuple,
         specialty: str,
-        urgency_level: str
+        urgency_level: str,
+        patient_district: str = None
     ) -> Hospital:
         """
-        Find nearest hospital using real Uganda location data
-        Uses GPS coordinates to calculate actual distance
+        Find nearest hospital in patient's district
+        PRIORITY: District-based matching (village's district)
+        FALLBACK: GPS-based if no district or no hospitals in district
         """
         try:
             from core.uganda_locations import find_nearest_hospitals
             
-            # If patient has GPS coordinates, use Uganda location data
+            # PRIORITY 1: If patient has district, find hospitals in that district
+            if patient_district:
+                logger.info(f"Finding hospitals in patient's district: {patient_district}")
+                
+                # Filter hospitals by district first
+                district_hospitals = Hospital.objects.filter(
+                    district=patient_district,
+                    is_operational=True
+                ).exclude(
+                    emergency_capacity_status=Hospital.CapacityStatus.FULL
+                )
+                
+                # If patient has GPS, sort by distance within district
+                if patient_location and all(patient_location):
+                    from geopy.distance import geodesic
+                    latitude, longitude = patient_location
+                    
+                    scored_hospitals = []
+                    for hospital in district_hospitals:
+                        if hospital.latitude and hospital.longitude:
+                            distance = geodesic(
+                                (latitude, longitude),
+                                (hospital.latitude, hospital.longitude)
+                            ).kilometers
+                            scored_hospitals.append((hospital, distance))
+                    
+                    # Sort by distance
+                    scored_hospitals.sort(key=lambda x: x[1])
+                    
+                    if scored_hospitals:
+                        nearest = scored_hospitals[0]
+                        logger.info(f"[OK] Found hospital in {patient_district}: {nearest[0].name} ({nearest[1]:.1f} km away)")
+                        return nearest[0]
+                
+                # If no GPS or no hospitals with GPS, just pick least busy in district
+                hospital = district_hospitals.order_by('current_active_referrals').first()
+                if hospital:
+                    logger.info(f"[OK] Found hospital in {patient_district}: {hospital.name} (least busy)")
+                    return hospital
+                
+                logger.warning(f"[WARNING] No available hospitals found in district: {patient_district}")
+            
+            # FALLBACK: GPS-based global search if no district or no hospitals in district
             if patient_location and all(patient_location):
                 latitude, longitude = patient_location
                 

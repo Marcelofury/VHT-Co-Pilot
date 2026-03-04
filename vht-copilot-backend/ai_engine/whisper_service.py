@@ -52,53 +52,48 @@ Transcribe audio file using OpenAI Whisper API
                     'error': 'OpenAI API key not configured'
                 }
             
-            # TODO: Uncomment when OpenAI API key is provided
-            # from openai import OpenAI
-            # client = OpenAI(api_key=self.api_key)
+            # OpenAI Whisper API - NOW ACTIVE
+            from openai import OpenAI
+            client = OpenAI(api_key=self.api_key)
             
-            # with open(audio_file_path, 'rb') as audio_file:
-            #     # Transcribe
-            #     transcription_response = client.audio.transcriptions.create(
-            #         model=self.model,
-            #         file=audio_file,
-            #         language=language,
-            #         response_format="verbose_json"
-            #     )
+            logger.info(f"Processing audio file with Whisper: {audio_file_path}")
             
-            # detected_language = transcription_response.language
-            # transcription_text = transcription_response.text
-            # duration = transcription_response.duration
+            with open(audio_file_path, 'rb') as audio_file:
+                # Transcribe
+                transcription_response = client.audio.transcriptions.create(
+                    model=self.model,
+                    file=audio_file,
+                    language=language,
+                    response_format="verbose_json"
+                )
             
-            # # Calculate confidence (Whisper doesn't provide this directly)
-            # # Use heuristic based on language match
-            # confidence = 0.9 if detected_language == language else 0.7
+            detected_language = transcription_response.language
+            transcription_text = transcription_response.text
+            duration = transcription_response.duration
             
-            # # If not English, translate
-            # translation = transcription_text
-            # if detected_language != 'en':
-            #     translation_response = client.audio.translations.create(
-            #         model=self.model,
-            #         file=open(audio_file_path, 'rb')
-            #     )
-            #     translation = translation_response.text
-            #     confidence = 0.75  # Lower confidence for translation
+            # Calculate confidence (Whisper doesn't provide this directly)
+            # Use heuristic based on language match
+            confidence = 0.9 if detected_language == language else 0.7
             
-            # return {
-            #     'transcription': translation if detected_language != 'en' else transcription_text,
-            #     'original_transcription': transcription_text,
-            #     'language_detected': detected_language,
-            #     'confidence': confidence,
-            #     'duration': duration
-            # }
+            # If not English, translate to English
+            translation = transcription_text
+            if detected_language != 'en':
+                with open(audio_file_path, 'rb') as audio_file:
+                    translation_response = client.audio.translations.create(
+                        model=self.model,
+                        file=audio_file
+                    )
+                    translation = translation_response.text
+                    confidence = 0.75  # Lower confidence for translation
             
-            # Placeholder return
-            logger.info(f"Processing audio file: {audio_file_path}")
+            logger.info(f"Transcription complete: {transcription_text[:50]}...")
+            
             return {
-                'transcription': 'Patient reports high fever, severe headache, and body pain for 3 days',
-                'original_transcription': 'Omulwadde alina omusujja gw\'amaanyi',
-                'language_detected': 'lg',
-                'confidence': 0.85,
-                'duration': 15.3
+                'transcription': translation if detected_language != 'en' else transcription_text,
+                'original_transcription': transcription_text,
+                'language_detected': detected_language,
+                'confidence': confidence,
+                'duration_seconds': duration
             }
             
         except Exception as e:

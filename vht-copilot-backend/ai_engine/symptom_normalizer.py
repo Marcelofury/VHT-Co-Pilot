@@ -122,17 +122,79 @@ class SymptomNormalizer:
     
     def extract_symptom_list(self, text: str) -> List[str]:
         """
-        Extract symptom mentions from free-form text
+        Extract symptom mentions from free-form text using GROQ AI
+        This replaces keyword matching with intelligent AI extraction
         """
-        # Simple extraction based on keywords
-        # TODO: Enhance with NLP entity recognition
+        if not text or not text.strip():
+            logger.warning("No text provided for symptom extraction")
+            return []
+        
+        try:
+            from groq import Groq
+            from django.conf import settings
+            import os
+            
+            # Initialize GROQ client
+            groq_api_key = os.getenv('GROQ_API_KEY') or settings.GROQ_API_KEY
+            if not groq_api_key:
+                logger.error("GROQ API key not configured, falling back to keyword matching")
+                return self._fallback_keyword_extraction(text)
+            
+            client = Groq(api_key=groq_api_key)
+            
+            # Use GROQ AI to extract symptoms
+            prompt = f"""Extract all medical symptoms mentioned in this patient description.
+Return ONLY a comma-separated list of symptoms in simple English terms.
+
+Patient description: "{text}"
+
+Extract symptoms like: fever, cough, vomiting, diarrhea, headache, body pain, etc.
+Return format: symptom1, symptom2, symptom3
+If no symptoms found, return: none"""
+
+            response = client.chat.completions.create(
+                model=settings.GROQ_MODEL or "llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1,
+                max_tokens=200,
+            )
+            
+            result = response.choices[0].message.content.strip().lower()
+            
+            if result == "none" or not result:
+                logger.info("GROQ found no symptoms in text")
+                return []
+            
+            # Parse comma-separated symptoms
+            symptoms = [s.strip() for s in result.split(',') if s.strip()]
+            
+            logger.info(f"✅ GROQ extracted {len(symptoms)} symptoms: {symptoms}")
+            return symptoms
+            
+        except Exception as e:
+            logger.error(f"GROQ symptom extraction failed: {e}, using keyword fallback")
+            return self._fallback_keyword_extraction(text)
+    
+    def _fallback_keyword_extraction(self, text: str) -> List[str]:
+        """
+        Fallback keyword-based extraction (original method)
+        """
         symptoms = []
         text_lower = text.lower()
         
+        # First pass: Match symptom map keywords
         for keyword in self.SYMPTOM_MAP.keys():
             if keyword in text_lower:
                 symptoms.append(keyword)
         
+        # Second pass: Match standardized symptom names directly
+        standardized_terms = set(self.SYMPTOM_MAP.values())
+        for term in standardized_terms:
+            term_natural = term.replace('_', ' ')
+            if term_natural in text_lower and term not in symptoms:
+                symptoms.append(term_natural)
+        
+        logger.info(f"Keyword extraction found {len(symptoms)} symptoms: {symptoms}")
         return symptoms
     
     def categorize_symptoms(self, symptoms: List[Dict]) -> Dict[str, List[str]]:

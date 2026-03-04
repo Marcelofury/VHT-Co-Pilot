@@ -73,33 +73,45 @@ class AgentRunner:
             if audio_file_path:
                 logger.info("Step 1: Transcribing audio...")
                 
-                # Try Google Speech first (FREE 60 min/month), fallback to Whisper
+                # Try FREE speech recognition first (no API key needed!)
                 try:
-                    from .google_speech_service import google_speech_service
-                    from django.conf import settings
+                    from .free_speech_service import free_speech_service
                     
-                    if hasattr(settings, 'USE_GOOGLE_SPEECH') and settings.USE_GOOGLE_SPEECH and google_speech_service.is_available:
-                        logger.info("Using Google Speech-to-Text (FREE)")
-                        transcription_result = google_speech_service.transcribe_audio(
-                            audio_file_path,
-                            language_code=f"{language}-UG"
+                    logger.info("Using FREE Speech Recognition (Google Web API - no auth)")
+                    transcription_result = free_speech_service.transcribe_audio(
+                        audio_file_path,
+                        language=language
+                    )
+                    
+                    # If free service fails, fallback to Whisper
+                    if not transcription_result.get('success'):
+                        logger.warning("Free service failed, falling back to Whisper")
+                        transcription_result = self.whisper.transcribe_audio(
+                            audio_file_path, language
                         )
-                    else:
-                        raise Exception("Google Speech not configured")
+                    
                 except Exception as e:
-                    logger.warning(f"Google Speech unavailable ({e}), falling back to Whisper")
+                    logger.warning(f"Free speech service error ({e}), falling back to Whisper")
                     transcription_result = self.whisper.transcribe_audio(
                         audio_file_path, language
                     )
                 
                 if transcription_result.get('error'):
-                    result['error'] = f"Transcription failed: {transcription_result['error']}"
-                    return result
-                
-                transcription_text = transcription_result['transcription']
-                result['transcription'] = transcription_text
-                result['language_detected'] = transcription_result['language_detected']
-                result['translation_confidence'] = transcription_result['confidence']
+                    # Don't fail - allow continuing with transcription_text parameter
+                    logger.warning(f"Transcription failed: {transcription_result['error']}")
+                    if not transcription_text:
+                        result['error'] = f"Transcription failed and no text provided: {transcription_result['error']}"
+                        return result
+                    else:
+                        logger.info("Using provided transcription text instead of audio")
+                        result['transcription'] = transcription_text
+                        result['language_detected'] = language
+                        result['translation_confidence'] = 1.0
+                else:
+                    transcription_text = transcription_result['transcription']
+                    result['transcription'] = transcription_text
+                    result['language_detected'] = transcription_result['language_detected']
+                    result['translation_confidence'] = transcription_result['confidence']
                 
                 # Check translation confidence
                 if transcription_result['confidence'] < 0.7:
