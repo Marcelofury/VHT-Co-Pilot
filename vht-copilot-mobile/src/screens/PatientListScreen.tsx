@@ -157,7 +157,10 @@ export const PatientListScreen: React.FC<PatientListScreenProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <TouchableOpacity style={styles.headerButton}>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => onNavigate?.("profile")}
+          >
             <MaterialIcons name="menu" size={24} color={COLORS.deepBlue} />
           </TouchableOpacity>
 
@@ -166,7 +169,10 @@ export const PatientListScreen: React.FC<PatientListScreenProps> = ({
             <Text style={styles.headerSubtitle}>VILLAGE HEALTH TEAM</Text>
           </View>
 
-          <TouchableOpacity style={styles.headerButton}>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => onNavigate?.("profile")}
+          >
             <MaterialIcons
               name="notifications"
               size={24}
