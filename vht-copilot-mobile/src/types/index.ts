@@ -47,6 +47,10 @@ export interface VHTMember {
   primaryLanguage: Language;
   voiceFeedbackEnabled: boolean;
   phone?: string;
+  // Hospital fields (for hospital staff users)
+  hospitalName?: string;
+  hospitalDistrict?: string;
+  hospitalId?: number;
 }
 
 export interface Referral {

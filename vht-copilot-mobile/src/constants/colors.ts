@@ -9,6 +9,7 @@ export const COLORS = {
   // Triage Status Colors
   triageGreen: "#28A745",
   triageYellow: "#FFD700",
+  triageOrange: "#FF8C00",
   triageRed: "#DC3545",
   urgentRed: "#DC2626",
   emergencyRed: "#D50000",
