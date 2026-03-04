@@ -57,11 +57,25 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [hospitals, setHospitals] = useState<any[]>([]);
   const [showHospitalModal, setShowHospitalModal] = useState(false);
   const [loadingHospitals, setLoadingHospitals] = useState(false);
+  const [districts, setDistricts] = useState<any[]>([]);
+  const [villages, setVillages] = useState<any[]>([]);
+  const [showDistrictModal, setShowDistrictModal] = useState(false);
+  const [showVillageModal, setShowVillageModal] = useState(false);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
+  const [loadingVillages, setLoadingVillages] = useState(false);
 
-  // Fetch hospitals on component mount
+  // Fetch data on component mount
   useEffect(() => {
     fetchHospitals();
+    fetchDistricts();
   }, []);
+
+  // Fetch villages when district changes
+  useEffect(() => {
+    if (formData.district) {
+      fetchVillages(formData.district);
+    }
+  }, [formData.district]);
 
   const fetchHospitals = async () => {
     setLoadingHospitals(true);
@@ -77,6 +91,35 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     }
   };
 
+  const fetchDistricts = async () => {
+    setLoadingDistricts(true);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/locations/?action=districts');
+      const data = await response.json();
+      setDistricts(data.districts || []);
+      console.log(`Loaded ${data.districts?.length || 0} districts`);
+    } catch (error) {
+      console.error("Error fetching districts:", error);
+    } finally {
+      setLoadingDistricts(false);
+    }
+  };
+
+  const fetchVillages = async (districtName: string) => {
+    setLoadingVillages(true);
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/locations/?action=villages&district=${encodeURIComponent(districtName)}`);
+      const data = await response.json();
+      setVillages(data.villages || []);
+      console.log(`Loaded ${data.villages?.length || 0} villages for ${districtName}`);
+    } catch (error) {
+      console.error("Error fetching villages:", error);
+      setVillages([]);
+    } finally {
+      setLoadingVillages(false);
+    }
+  };
+
   const selectHospital = (hospital: any) => {
     setFormData(prev => ({
       ...prev,
@@ -84,11 +127,31 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       hospitalName: hospital.name,
       hospitalCode: hospital.id.toString(), // Use ID as code for backend
       district: hospital.district || prev.district, // Auto-populate district from hospital
+      village: '', // Clear village when hospital/district changes
     }));
     setShowHospitalModal(false);
     
     // Show success message
     console.log(`Hospital selected: ${hospital.name} in ${hospital.district} district`);
+  };
+
+  const selectDistrict = (district: any) => {
+    setFormData(prev => ({
+      ...prev,
+      district: district.name,
+      village: '', // Clear village when district changes
+    }));
+    setShowDistrictModal(false);
+    console.log(`District selected: ${district.name}`);
+  };
+
+  const selectVillage = (village: any) => {
+    setFormData(prev => ({
+      ...prev,
+      village: village.name,
+    }));
+    setShowVillageModal(false);
+    console.log(`Village selected: ${village.name}`);
   };
 
   const updateField = (field: string, value: string) => {
@@ -376,23 +439,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
           {/* Location */}
           <Text style={styles.sectionTitle}>Location</Text>
 
-          <View style={styles.inputContainer}>
-            <MaterialIcons
-              name="location-on"
-              size={20}
-              color={COLORS.slate400}
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Village"
-              placeholderTextColor={COLORS.slate400}
-              value={formData.village}
-              onChangeText={(value) => updateField("village", value)}
-              editable={!isLoading}
-            />
-          </View>
-
+          {/* District Dropdown */}
           <View style={styles.inputContainer}>
             <MaterialIcons
               name="map"
@@ -400,18 +447,47 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
               color={COLORS.slate400}
               style={styles.inputIcon}
             />
-            <TextInput
-              style={styles.input}
-              placeholder={formData.hospitalName ? `District: ${formData.district || 'Select hospital first'}` : "District"}
-              placeholderTextColor={COLORS.slate400}
-              value={formData.district}
-              onChangeText={(value) => updateField("district", value)}
-              editable={!isLoading && !formData.hospitalName}
-            />
-            {formData.hospitalName && formData.district && (
-              <MaterialIcons name="check-circle" size={20} color={COLORS.successGreen} style={{ marginLeft: 8 }} />
-            )}
+            <TouchableOpacity 
+              style={styles.hospitalSelector}
+              onPress={() => setShowDistrictModal(true)}
+              disabled={isLoading || (formData.role === 'HOSPITAL' && !!formData.hospitalName)}
+            >
+              <Text style={formData.district ? styles.input : styles.placeholderText}>
+                {formData.district || "Select District"}
+              </Text>
+              {formData.role === 'HOSPITAL' && formData.hospitalName && formData.district ? (
+                <MaterialIcons name="check-circle" size={20} color={COLORS.successGreen} style={{ marginLeft: 8 }} />
+              ) : (
+                <MaterialIcons name="arrow-drop-down" size={24} color={COLORS.slate400} />
+              )}
+            </TouchableOpacity>
           </View>
+          {formData.role === 'HOSPITAL' && formData.hospitalName && (
+            <Text style={styles.helperText}>District auto-populated from hospital</Text>
+          )}
+
+          {/* Village Dropdown */}
+          <View style={styles.inputContainer}>
+            <MaterialIcons
+              name="location-on"
+              size={20}
+              color={COLORS.slate400}
+              style={styles.inputIcon}
+            />
+            <TouchableOpacity 
+              style={styles.hospitalSelector}
+              onPress={() => setShowVillageModal(true)}
+              disabled={isLoading || !formData.district || loadingVillages}
+            >
+              <Text style={formData.village ? styles.input : styles.placeholderText}>
+                {loadingVillages ? 'Loading villages...' : (formData.village || (formData.district ? `Select Village in ${formData.district}` : 'Select district first'))}
+              </Text>
+              <MaterialIcons name="arrow-drop-down" size={24} color={COLORS.slate400} />
+            </TouchableOpacity>
+          </View>
+          {villages.length > 0 && (
+            <Text style={styles.helperText}>{villages.length} villages available in {formData.district}</Text>
+          )}
 
           {/* Account Credentials */}
           <Text style={styles.sectionTitle}>Account Credentials</Text>
@@ -557,6 +633,102 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                         </Text>
                       </View>
                       {formData.hospitalId === hospital.id && (
+                        <MaterialIcons name="check-circle" size={24} color={COLORS.successGreen} />
+                      )}
+                    </TouchableOpacity>
+                  ))
+                )}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* District Selection Modal */}
+      <Modal
+        visible={showDistrictModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowDistrictModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select District</Text>
+              <TouchableOpacity onPress={() => setShowDistrictModal(false)}>
+                <MaterialIcons name="close" size={24} color={COLORS.slate600} />
+              </TouchableOpacity>
+            </View>
+
+            {loadingDistricts ? (
+              <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: 20 }} />
+            ) : (
+              <ScrollView style={styles.hospitalList}>
+                {districts.length === 0 ? (
+                  <Text style={styles.noHospitalsText}>No districts available</Text>
+                ) : (
+                  districts.map((district) => (
+                    <TouchableOpacity
+                      key={district.id}
+                      style={styles.hospitalItem}
+                      onPress={() => selectDistrict(district)}
+                    >
+                      <MaterialIcons name="map" size={24} color={COLORS.primary} />
+                      <View style={styles.hospitalInfo}>
+                        <Text style={styles.hospitalName}>{district.name}</Text>
+                        <Text style={styles.hospitalDetails}>
+                          {district.region} Region • {district.village_count} villages
+                        </Text>
+                      </View>
+                      {formData.district === district.name && (
+                        <MaterialIcons name="check-circle" size={24} color={COLORS.successGreen} />
+                      )}
+                    </TouchableOpacity>
+                  ))
+                )}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Village Selection Modal */}
+      <Modal
+        visible={showVillageModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowVillageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Village in {formData.district}</Text>
+              <TouchableOpacity onPress={() => setShowVillageModal(false)}>
+                <MaterialIcons name="close" size={24} color={COLORS.slate600} />
+              </TouchableOpacity>
+            </View>
+
+            {loadingVillages ? (
+              <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: 20 }} />
+            ) : (
+              <ScrollView style={styles.hospitalList}>
+                {villages.length === 0 ? (
+                  <Text style={styles.noHospitalsText}>No villages available for {formData.district}</Text>
+                ) : (
+                  villages.map((village) => (
+                    <TouchableOpacity
+                      key={village.id}
+                      style={styles.hospitalItem}
+                      onPress={() => selectVillage(village)}
+                    >
+                      <MaterialIcons name="location-on" size={24} color={COLORS.primary} />
+                      <View style={styles.hospitalInfo}>
+                        <Text style={styles.hospitalName}>{village.name}</Text>
+                        <Text style={styles.hospitalDetails}>
+                          GPS: {village.latitude.toFixed(4)}, {village.longitude.toFixed(4)}
+                        </Text>
+                      </View>
+                      {formData.village === village.name && (
                         <MaterialIcons name="check-circle" size={24} color={COLORS.successGreen} />
                       )}
                     </TouchableOpacity>
@@ -719,6 +891,13 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: 15,
     color: COLORS.slate400,
+  },
+  helperText: {
+    fontSize: 12,
+    color: COLORS.slate400,
+    marginTop: -8,
+    marginBottom: 8,
+    marginLeft: 44,
   },
   modalOverlay: {
     flex: 1,
