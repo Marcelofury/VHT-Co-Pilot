@@ -13,6 +13,11 @@ langchain==0.1.7
 langchain-openai==0.0.5
 chromadb==0.4.22
 
+# Speech Recognition (FREE - no API key needed)
+SpeechRecognition==3.10.1
+pydub==0.25.1  # Audio format conversion
+PyAudio==0.2.14  # Audio I/O (optional, for microphone input)
+
 # Geospatial
 geopy==2.4.1
 
@@ -30,7 +35,6 @@ pytest-django==4.8.0
 # psycopg2-binary==2.9.9  # PostgreSQL for production
 # celery==5.3.6  # Async task processing
 # redis==5.0.1  # Task queue backend
-# pydub==0.25.1  # Audio format conversion
 # sentence-transformers==2.3.1  # Local embeddings (large download)
 
 # SMS (optional - uncomment when needed)
