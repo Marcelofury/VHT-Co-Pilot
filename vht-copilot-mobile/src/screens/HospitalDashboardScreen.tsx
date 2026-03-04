@@ -83,8 +83,28 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
       }
       setLastNotificationCount(urgentCount);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading referrals:", error);
+      
+      // Check if it's an authentication error
+      if (error.response?.status === 401) {
+        console.warn("Authentication failed - token may be expired or missing");
+        if (Platform.OS === 'web') {
+          alert("Session expired. Please log in again.");
+        } else {
+          Alert.alert(
+            "Session Expired",
+            "Your session has expired. Please log in again.",
+            [{ text: "OK", onPress: () => onLogout?.() }]
+          );
+        }
+        // Trigger logout after a brief delay (for web)
+        setTimeout(() => {
+          onLogout?.();
+        }, 1000);
+        return;
+      }
+      
       // Set empty data on error
       setReferrals([]);
       setStats({
@@ -101,16 +121,19 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
   };
 
   useEffect(() => {
-    loadData();
-    
-    // Real-time polling: Check for new referrals every 30 seconds
-    const pollInterval = setInterval(() => {
-      console.log('Polling for new referrals...');
+    // Only load data if user is authenticated
+    if (currentUser) {
       loadData();
-    }, 30000); // 30 seconds
-    
-    return () => clearInterval(pollInterval);
-  }, [lastNotificationCount]);
+      
+      // Real-time polling: Check for new referrals every 30 seconds
+      const pollInterval = setInterval(() => {
+        console.log('Polling for new referrals...');
+        loadData();
+      }, 30000); // 30 seconds
+      
+      return () => clearInterval(pollInterval);
+    }
+  }, [currentUser]); // Depend on currentUser instead of lastNotificationCount
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -191,10 +214,13 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
 
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Hospital Dashboard</Text>
+        <View style={styles.headerInfo}>
+          <Text style={styles.headerTitle}>
+            {currentUser?.hospitalName || "Hospital Dashboard"}
+          </Text>
           <Text style={styles.headerSubtitle}>
             {currentUser?.name || "Hospital Staff"}
+            {currentUser?.hospitalDistrict && ` • ${currentUser.hospitalDistrict} District`}
           </Text>
         </View>
         <TouchableOpacity onPress={onLogout} style={styles.logoutButton}>
@@ -235,7 +261,7 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
           </View>
         </View>
 
-        {/* Incoming Referrals */}
+        {/* Incoming Referrals - Organized by Triage Level */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Incoming Referrals</Text>
           
@@ -248,75 +274,323 @@ export const HospitalDashboardScreen: React.FC<HospitalDashboardScreenProps> = (
               </Text>
             </View>
           ) : (
-            referrals.map((referral) => (
-              <TouchableOpacity
-                key={referral.id}
-                style={styles.referralCard}
-                onPress={() => onViewReferral?.(referral.id)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.referralHeader}>
-                  <View style={styles.referralPatient}>
-                    <Text style={styles.patientName}>{referral.patient_name}</Text>
-                    <Text style={styles.vhtCode}>{referral.vht_code}</Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.triageBadge,
-                      { backgroundColor: getTriageColor(referral.triage_level) },
-                    ]}
-                  >
-                    <Text style={styles.triageBadgeText}>
-                      {referral.triage_level}
+            <>
+              {/* URGENT Referrals */}
+              {referrals.filter(r => r.triage_level === 'URGENT').length > 0 && (
+                <View style={styles.triageSection}>
+                  <View style={[styles.triageSectionHeader, { backgroundColor: `${COLORS.urgentRed}20` }]}>
+                    <MaterialIcons name="warning" size={20} color={COLORS.urgentRed} />
+                    <Text style={[styles.triageSectionTitle, { color: COLORS.urgentRed }]}>
+                      URGENT ({referrals.filter(r => r.triage_level === 'URGENT').length})
                     </Text>
-                    <Text style={styles.triageScore}>{referral.triage_score}</Text>
                   </View>
-                </View>
+                  {referrals.filter(r => r.triage_level === 'URGENT').map((referral) => (
+                    <TouchableOpacity
+                      key={referral.id}
+                      style={[styles.referralCard, { borderLeftWidth: 4, borderLeftColor: COLORS.urgentRed }]}
+                      onPress={() => onViewReferral?.(referral.id)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.referralHeader}>
+                        <View style={styles.referralPatient}>
+                          <Text style={styles.patientName}>{referral.patient_name}</Text>
+                          <Text style={styles.vhtCode}>{referral.vht_code}</Text>
+                        </View>
+                        <View
+                          style={[
+                            styles.triageBadge,
+                            { backgroundColor: COLORS.urgentRed },
+                          ]}
+                        >
+                          <Text style={styles.triageBadgeText}>URGENT</Text>
+                          <Text style={styles.triageScore}>{referral.triage_score}</Text>
+                        </View>
+                      </View>
 
-                <View style={styles.referralDetails}>
-                  <View style={styles.detailRow}>
-                    <MaterialIcons name="info-outline" size={16} color={COLORS.slate400} />
-                    <Text style={styles.detailText}>
-                      Status:{" "}
-                      <Text
-                        style={[
-                          styles.statusText,
-                          { color: getStatusColor(referral.status) },
-                        ]}
-                      >
-                        {getStatusLabel(referral.status)}
-                      </Text>
+                      <View style={styles.referralDetails}>
+                        <View style={styles.detailRow}>
+                          <MaterialIcons name="info-outline" size={16} color={COLORS.slate400} />
+                          <Text style={styles.detailText}>
+                            Status:{" "}
+                            <Text
+                              style={[
+                                styles.statusText,
+                                { color: getStatusColor(referral.status) },
+                              ]}
+                            >
+                              {getStatusLabel(referral.status)}
+                            </Text>
+                          </Text>
+                        </View>
+                        <View style={styles.detailRow}>
+                          <MaterialIcons name="access-time" size={16} color={COLORS.slate400} />
+                          <Text style={styles.detailText}>
+                            {new Date(referral.created_at).toLocaleString()}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.actionButtons}>
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.acceptButton]}
+                          onPress={() => handleAcceptReferral(referral.id)}
+                        >
+                          <MaterialIcons name="check" size={18} color={COLORS.white} />
+                          <Text style={styles.actionButtonText}>Accept</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.viewButton]}
+                          onPress={() => onViewReferral?.(referral.id)}
+                        >
+                          <MaterialIcons name="visibility" size={18} color={COLORS.primary} />
+                          <Text style={[styles.actionButtonText, { color: COLORS.primary }]}>
+                            View Details
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
+              {/* HIGH RISK Referrals */}
+              {referrals.filter(r => r.triage_level === 'HIGH_RISK').length > 0 && (
+                <View style={styles.triageSection}>
+                  <View style={[styles.triageSectionHeader, { backgroundColor: `${COLORS.triageOrange}20` }]}>
+                    <MaterialIcons name="priority-high" size={20} color={COLORS.triageOrange} />
+                    <Text style={[styles.triageSectionTitle, { color: COLORS.triageOrange }]}>
+                      HIGH RISK ({referrals.filter(r => r.triage_level === 'HIGH_RISK').length})
                     </Text>
                   </View>
-                  <View style={styles.detailRow}>
-                    <MaterialIcons name="access-time" size={16} color={COLORS.slate400} />
-                    <Text style={styles.detailText}>
-                      {new Date(referral.created_at).toLocaleString()}
+                  {referrals.filter(r => r.triage_level === 'HIGH_RISK').map((referral) => (
+                    <TouchableOpacity
+                      key={referral.id}
+                      style={[styles.referralCard, { borderLeftWidth: 4, borderLeftColor: COLORS.triageOrange }]}
+                      onPress={() => onViewReferral?.(referral.id)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.referralHeader}>
+                        <View style={styles.referralPatient}>
+                          <Text style={styles.patientName}>{referral.patient_name}</Text>
+                          <Text style={styles.vhtCode}>{referral.vht_code}</Text>
+                        </View>
+                        <View
+                          style={[
+                            styles.triageBadge,
+                            { backgroundColor: COLORS.triageOrange },
+                          ]}
+                        >
+                          <Text style={styles.triageBadgeText}>HIGH RISK</Text>
+                          <Text style={styles.triageScore}>{referral.triage_score}</Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.referralDetails}>
+                        <View style={styles.detailRow}>
+                          <MaterialIcons name="info-outline" size={16} color={COLORS.slate400} />
+                          <Text style={styles.detailText}>
+                            Status:{" "}
+                            <Text
+                              style={[
+                                styles.statusText,
+                                { color: getStatusColor(referral.status) },
+                              ]}
+                            >
+                              {getStatusLabel(referral.status)}
+                            </Text>
+                          </Text>
+                        </View>
+                        <View style={styles.detailRow}>
+                          <MaterialIcons name="access-time" size={16} color={COLORS.slate400} />
+                          <Text style={styles.detailText}>
+                            {new Date(referral.created_at).toLocaleString()}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.actionButtons}>
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.acceptButton]}
+                          onPress={() => handleAcceptReferral(referral.id)}
+                        >
+                          <MaterialIcons name="check" size={18} color={COLORS.white} />
+                          <Text style={styles.actionButtonText}>Accept</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.viewButton]}
+                          onPress={() => onViewReferral?.(referral.id)}
+                        >
+                          <MaterialIcons name="visibility" size={18} color={COLORS.primary} />
+                          <Text style={[styles.actionButtonText, { color: COLORS.primary }]}>
+                            View Details
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
+              {/* MODERATE Referrals */}
+              {referrals.filter(r => r.triage_level === 'MODERATE').length > 0 && (
+                <View style={styles.triageSection}>
+                  <View style={[styles.triageSectionHeader, { backgroundColor: `${COLORS.triageYellow}20` }]}>
+                    <MaterialIcons name="info" size={20} color={COLORS.triageYellow} />
+                    <Text style={[styles.triageSectionTitle, { color: COLORS.triageYellow }]}>
+                      MODERATE ({referrals.filter(r => r.triage_level === 'MODERATE').length})
                     </Text>
                   </View>
+                  {referrals.filter(r => r.triage_level === 'MODERATE').map((referral) => (
+                    <TouchableOpacity
+                      key={referral.id}
+                      style={[styles.referralCard, { borderLeftWidth: 4, borderLeftColor: COLORS.triageYellow }]}
+                      onPress={() => onViewReferral?.(referral.id)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.referralHeader}>
+                        <View style={styles.referralPatient}>
+                          <Text style={styles.patientName}>{referral.patient_name}</Text>
+                          <Text style={styles.vhtCode}>{referral.vht_code}</Text>
+                        </View>
+                        <View
+                          style={[
+                            styles.triageBadge,
+                            { backgroundColor: COLORS.triageYellow },
+                          ]}
+                        >
+                          <Text style={styles.triageBadgeText}>MODERATE</Text>
+                          <Text style={styles.triageScore}>{referral.triage_score}</Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.referralDetails}>
+                        <View style={styles.detailRow}>
+                          <MaterialIcons name="info-outline" size={16} color={COLORS.slate400} />
+                          <Text style={styles.detailText}>
+                            Status:{" "}
+                            <Text
+                              style={[
+                                styles.statusText,
+                                { color: getStatusColor(referral.status) },
+                              ]}
+                            >
+                              {getStatusLabel(referral.status)}
+                            </Text>
+                          </Text>
+                        </View>
+                        <View style={styles.detailRow}>
+                          <MaterialIcons name="access-time" size={16} color={COLORS.slate400} />
+                          <Text style={styles.detailText}>
+                            {new Date(referral.created_at).toLocaleString()}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.actionButtons}>
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.acceptButton]}
+                          onPress={() => handleAcceptReferral(referral.id)}
+                        >
+                          <MaterialIcons name="check" size={18} color={COLORS.white} />
+                          <Text style={styles.actionButtonText}>Accept</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.viewButton]}
+                          onPress={() => onViewReferral?.(referral.id)}
+                        >
+                          <MaterialIcons name="visibility" size={18} color={COLORS.primary} />
+                          <Text style={[styles.actionButtonText, { color: COLORS.primary }]}>
+                            View Details
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
                 </View>
+              )}
 
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.acceptButton]}
-                    onPress={() => handleAcceptReferral(referral.id)}
-                  >
-                    <MaterialIcons name="check" size={18} color={COLORS.white} />
-                    <Text style={styles.actionButtonText}>Accept</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.viewButton]}
-                    onPress={() => onViewReferral?.(referral.id)}
-                  >
-                    <MaterialIcons name="visibility" size={18} color={COLORS.primary} />
-                    <Text style={[styles.actionButtonText, { color: COLORS.primary }]}>
-                      View Details
+              {/* NON-URGENT / Other Referrals */}
+              {referrals.filter(r => !['URGENT', 'HIGH_RISK', 'MODERATE'].includes(r.triage_level)).length > 0 && (
+                <View style={styles.triageSection}>
+                  <View style={[styles.triageSectionHeader, { backgroundColor: `${COLORS.successGreen}20` }]}>
+                    <MaterialIcons name="check-circle-outline" size={20} color={COLORS.successGreen} />
+                    <Text style={[styles.triageSectionTitle, { color: COLORS.successGreen }]}>
+                      NON-URGENT ({referrals.filter(r => !['URGENT', 'HIGH_RISK', 'MODERATE'].includes(r.triage_level)).length})
                     </Text>
-                  </TouchableOpacity>
+                  </View>
+                  {referrals.filter(r => !['URGENT', 'HIGH_RISK', 'MODERATE'].includes(r.triage_level)).map((referral) => (
+                    <TouchableOpacity
+                      key={referral.id}
+                      style={[styles.referralCard, { borderLeftWidth: 4, borderLeftColor: COLORS.successGreen }]}
+                      onPress={() => onViewReferral?.(referral.id)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.referralHeader}>
+                        <View style={styles.referralPatient}>
+                          <Text style={styles.patientName}>{referral.patient_name}</Text>
+                          <Text style={styles.vhtCode}>{referral.vht_code}</Text>
+                        </View>
+                        <View
+                          style={[
+                            styles.triageBadge,
+                            { backgroundColor: COLORS.successGreen },
+                          ]}
+                        >
+                          <Text style={styles.triageBadgeText}>{referral.triage_level}</Text>
+                          <Text style={styles.triageScore}>{referral.triage_score}</Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.referralDetails}>
+                        <View style={styles.detailRow}>
+                          <MaterialIcons name="info-outline" size={16} color={COLORS.slate400} />
+                          <Text style={styles.detailText}>
+                            Status:{" "}
+                            <Text
+                              style={[
+                                styles.statusText,
+                                { color: getStatusColor(referral.status) },
+                              ]}
+                            >
+                              {getStatusLabel(referral.status)}
+                            </Text>
+                          </Text>
+                        </View>
+                        <View style={styles.detailRow}>
+                          <MaterialIcons name="access-time" size={16} color={COLORS.slate400} />
+                          <Text style={styles.detailText}>
+                            {new Date(referral.created_at).toLocaleString()}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.actionButtons}>
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.acceptButton]}
+                          onPress={() => handleAcceptReferral(referral.id)}
+                        >
+                          <MaterialIcons name="check" size={18} color={COLORS.white} />
+                          <Text style={styles.actionButtonText}>Accept</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.viewButton]}
+                          onPress={() => onViewReferral?.(referral.id)}
+                        >
+                          <MaterialIcons name="visibility" size={18} color={COLORS.primary} />
+                          <Text style={[styles.actionButtonText, { color: COLORS.primary }]}>
+                            View Details
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
                 </View>
-              </TouchableOpacity>
-            ))
+              )}
+            </>
           )}
         </View>
       </ScrollView>
@@ -344,8 +618,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.slate200,
   },
+  headerInfo: {
+    flex: 1,
+  },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
     color: COLORS.slate900,
   },
@@ -494,4 +771,21 @@ const styles = StyleSheet.create({
     color: COLORS.slate400,
     marginTop: 4,
   },
+  triageSection: {
+    marginBottom: 20,
+  },
+  triageSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+    gap: 8,
+  },
+  triageSectionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });
+
+export default HospitalDashboardScreen;
