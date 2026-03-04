@@ -39,6 +39,7 @@ class Patient(models.Model):
     
     # Location
     village = models.CharField(max_length=100, blank=True)
+    district = models.CharField(max_length=100, blank=True, help_text="Patient's district (from village or manual entry)")
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     
