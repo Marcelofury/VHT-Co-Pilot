@@ -5,16 +5,22 @@ import * as SplashScreen from "expo-splash-screen";
 import { AppNavigator } from "./src/navigation";
 import { COLORS } from "./src/constants/colors";
 import { useAppStore } from "./src/stores/appStore";
-import { loadAuthToken, authAPI } from "./src/services/api";
+import { loadAuthToken, authAPI, setAuthFailureCallback } from "./src/services/api";
 
 // Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
-  const { setLanguage, setIsOnline, setCurrentUser } = useAppStore();
+  const { setLanguage, setIsOnline, setCurrentUser, clearAuth } = useAppStore();
 
   useEffect(() => {
+    // Register callback for when auth fails (401 errors)
+    setAuthFailureCallback(() => {
+      console.log("Auth failure detected - clearing user from store");
+      clearAuth();
+    });
+
     async function prepare() {
       try {
         // Initialize app settings

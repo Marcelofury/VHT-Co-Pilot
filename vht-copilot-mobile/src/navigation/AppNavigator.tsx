@@ -16,6 +16,7 @@ import {
   EmergencyDecisionScreen,
   DashboardScreen,
   HospitalDashboardScreen,
+  ReferralDetailScreen,
   ProfileScreen,
   SyncScreen,
   AIActionScreen,
@@ -33,6 +34,7 @@ export type RootStackParamList = {
   VoiceIntake: { patientId?: string };
   EmergencyDecision: { patientId: string };
   AIAction: { referralId?: string };
+  ReferralDetail: { referralId: string };
   Login: undefined;
   Register: undefined;
 };
@@ -116,6 +118,9 @@ const DashboardScreenWrapper: React.FC<any> = ({ navigation }) => {
           case "patients":
             navigation.navigate("Patients");
             break;
+          case "referrals":
+            navigation.navigate("Monitoring");
+            break;
           case "sync":
             navigation.navigate("Sync");
             break;
@@ -134,8 +139,7 @@ const HospitalDashboardScreenWrapper: React.FC<any> = ({ navigation }) => {
   return (
     <HospitalDashboardScreen
       onViewReferral={(referralId) => {
-        console.log("View referral:", referralId);
-        // TODO: Navigate to referral detail screen
+        navigation.navigate("ReferralDetail", { referralId: referralId.toString() });
       }}
       onNavigate={(screen) => {
         switch (screen) {
@@ -413,6 +417,23 @@ const RegisterScreenWrapper: React.FC<any> = ({ navigation }) => {
   );
 };
 
+const ReferralDetailScreenWrapper: React.FC<any> = ({ navigation, route }) => {
+  const { referralId } = route.params;
+  
+  return (
+    <ReferralDetailScreen
+      referralId={referralId}
+      onBack={() => {
+        navigation.goBack();
+      }}
+      onStatusUpdated={() => {
+        // Optionally refresh hospital dashboard data
+        console.log("Status updated for referral:", referralId);
+      }}
+    />
+  );
+};
+
 // Main App Navigator
 export const AppNavigator: React.FC = () => {
   const { currentUser } = useAppStore();
@@ -458,6 +479,13 @@ export const AppNavigator: React.FC = () => {
           component={AIActionScreenWrapper}
           options={{
             animation: "fade",
+          }}
+        />
+        <Stack.Screen
+          name="ReferralDetail"
+          component={ReferralDetailScreenWrapper}
+          options={{
+            animation: "slide_from_right",
           }}
         />
       </Stack.Navigator>
