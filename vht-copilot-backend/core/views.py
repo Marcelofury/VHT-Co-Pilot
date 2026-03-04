@@ -1,8 +1,12 @@
 """
 Core Views
 """
+import os
+import uuid
+from django.conf import settings
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import User, Hospital, AuditLog
@@ -82,19 +86,79 @@ def health_check(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def get_uganda_locations(request):
     """
-    Get Uganda location data (districts, sub-counties, parishes, villages)
+    Get Uganda location data from database (districts, villages)
     """
-    from .uganda_locations import get_all_districts, get_sub_counties, get_parishes, get_coordinates
-    from .uganda_villages import get_all_villages, get_village_coordinates, UGANDA_VILLAGES
+    from .models import District, Village
     
     action = request.query_params.get('action', 'districts')
     
     if action == 'districts':
-        return Response({'districts': get_all_districts()})
+        # Get all districts from database
+        districts = District.objects.all().order_by('name')
+        districts_data = [
+            {
+                'id': d.id,
+                'name': d.name,
+                'region': d.region,
+                'latitude': d.latitude,
+                'longitude': d.longitude,
+                'village_count': d.village_count
+            }
+            for d in districts
+        ]
+        return Response({'districts': districts_data})
     
-    elif action == 'sub_counties':
+    elif action == 'villages':
+        # Get villages for a specific district
+        district_name = request.query_params.get('district')
+        if not district_name:
+            return Response({'error': 'district parameter required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            district = District.objects.get(name=district_name)
+        except District.DoesNotExist:
+            return Response({'error': 'District not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        villages = Village.objects.filter(district=district).order_by('name')
+        villages_data = [
+            {
+                'id': v.id,
+                'name': v.name,
+                'latitude': v.latitude,
+                'longitude': v.longitude
+            }
+            for v in villages
+        ]
+        return Response({'villages': villages_data})
+    
+    elif action == 'village_coordinates':
+        # Get coordinates for a specific village
+        village_name = request.query_params.get('village')
+        district_name = request.query_params.get('district')
+        if not village_name or not district_name:
+            return Response({'error': 'village and district parameters required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            district = District.objects.get(name=district_name)
+            village = Village.objects.get(name=village_name, district=district)
+            return Response({
+                'village': village.name,
+                'district': district.name,
+                'latitude': village.latitude,
+                'longitude': village.longitude
+            })
+        except (District.DoesNotExist, Village.DoesNotExist):
+            return Response({'error': 'Location not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Fallback: Legacy support for python file-based data
+    from .uganda_locations import get_all_districts, get_sub_counties, get_parishes, get_coordinates
+    from .uganda_villages import get_all_villages, get_village_coordinates, UGANDA_VILLAGES
+    
+    if action == 'sub_counties':
         district = request.query_params.get('district')
         if not district:
             return Response({'error': 'district parameter required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -240,6 +304,20 @@ def register_user(request):
         
         user = User.objects.create_user(**user_data)
         
+        # If HOSPITAL role and hospital_code provided, link to Hospital object
+        if user.role == 'HOSPITAL' and hospital_code:
+            try:
+                from core.models import Hospital
+                hospital = Hospital.objects.filter(id=hospital_code).first()
+                if hospital:
+                    user.hospital = hospital
+                    user.save()
+                    print(f"User {user.username} linked to hospital: {hospital.name}")
+                else:
+                    print(f"Warning: Hospital with code {hospital_code} not found")
+            except Exception as e:
+                print(f"Warning: Could not link hospital: {e}")
+        
         print(f"User created successfully: {user.username}")
         serializer = UserSerializer(user)
         return Response(
@@ -283,6 +361,64 @@ def get_profile(request):
             serializer.errors, 
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def upload_profile_photo(request):
+    """
+    Upload profile photo and return the permanent URL
+    """
+    if 'photo' not in request.FILES:
+        return Response(
+            {'error': 'No photo file provided'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    photo_file = request.FILES['photo']
+    
+    # Validate file type
+    allowed_extensions = ['jpg', 'jpeg', 'png', 'gif']
+    file_extension = photo_file.name.split('.')[-1].lower()
+    if file_extension not in allowed_extensions:
+        return Response(
+            {'error': f'Invalid file type. Allowed: {', '.join(allowed_extensions)}'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Validate file size (5MB max)
+    max_size = 5 * 1024 * 1024  # 5MB
+    if photo_file.size > max_size:
+        return Response(
+            {'error': 'File too large. Maximum size is 5MB'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Create profile_photos directory if it doesn't exist
+    upload_dir = os.path.join(settings.MEDIA_ROOT, 'profile_photos')
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    # Generate unique filename
+    unique_filename = f"{request.user.id}_{uuid.uuid4().hex[:8]}.{file_extension}"
+    file_path = os.path.join(upload_dir, unique_filename)
+    
+    # Save the file
+    with open(file_path, 'wb+') as destination:
+        for chunk in photo_file.chunks():
+            destination.write(chunk)
+    
+    # Generate the URL
+    photo_url = f"{settings.MEDIA_URL}profile_photos/{unique_filename}"
+    
+    # Update user's photo field
+    request.user.photo = photo_url
+    request.user.save()
+    
+    return Response({
+        'url': photo_url,
+        'message': 'Photo uploaded successfully'
+    })
 
 
 @api_view(['GET'])

@@ -6,15 +6,20 @@ from .models import User, Hospital, AuditLog
 
 
 class UserSerializer(serializers.ModelSerializer):
+    hospital_name = serializers.CharField(source='hospital.name', read_only=True)
+    hospital_district = serializers.CharField(source='hospital.district', read_only=True)
+    hospital_id = serializers.IntegerField(source='hospital.id', read_only=True)
+    
     class Meta:
         model = User
         fields = [
             'id', 'username', 'email', 'first_name', 'last_name',
             'role', 'phone_number', 'vht_id', 'village', 'district', 'region',
             'primary_language', 'voice_feedback_enabled', 'is_active_vht',
-            'photo', 'created_at', 'updated_at'
+            'photo', 'hospital_name', 'hospital_district', 'hospital_id',
+            'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'hospital_name', 'hospital_district', 'hospital_id', 'created_at', 'updated_at']
 
 
 class HospitalSerializer(serializers.ModelSerializer):
