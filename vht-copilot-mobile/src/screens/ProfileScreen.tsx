@@ -165,6 +165,30 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
     setIsSaving(true);
     try {
+      let photoUrl = editedUser.photoUrl;
+      
+      // If photo is a local file URI, upload it first
+      if (photoUrl && (photoUrl.startsWith('file://') || photoUrl.startsWith('content://'))) {
+        console.log("Uploading photo to server...");
+        try {
+          photoUrl = await authAPI.uploadPhoto(photoUrl);
+          console.log("Photo uploaded successfully:", photoUrl);
+        } catch (uploadError) {
+          console.error("Photo upload failed:", uploadError);
+          Alert.alert(
+            "Photo Upload Failed",
+            "Continue saving profile without photo?",
+            [
+              { text: "Cancel", style: "cancel", onPress: () => { setIsSaving(false); return; } },
+              { text: "Continue", onPress: async () => {
+                photoUrl = currentUser?.photoUrl || ""; // Keep existing photo
+              }}
+            ]
+          );
+          return;
+        }
+      }
+      
       console.log("Sending update to API...");
       const updatedUser = await authAPI.updateProfile({
         name: editedUser.name.trim(),
@@ -172,7 +196,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         district: editedUser.district.trim(),
         region: editedUser.region.trim(),
         phone: editedUser.phone.trim(),
-        photoUrl: editedUser.photoUrl,
+        photoUrl: photoUrl,
       });
 
       console.log("Profile updated successfully:", updatedUser);
@@ -184,7 +208,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         district: editedUser.district.trim(),
         region: editedUser.region.trim(),
         phone: editedUser.phone.trim(),
-        photoUrl: editedUser.photoUrl,
+        photoUrl: photoUrl,
       });
 
       setIsEditModalVisible(false);
