@@ -13,11 +13,25 @@ import {
   ActivityIndicator,
   Modal,
   ScrollView,
+  TextInput,
+  Switch,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
 import { useAppStore } from "../stores/appStore";
 import { aiAPI } from "../services/api";
+
+// Web API type extensions
+declare global {
+  interface Navigator {
+    mediaDevices: {
+      getUserMedia(constraints: { audio: boolean }): Promise<MediaStream>;
+    };
+  }
+  interface MediaStream {
+    getTracks(): { stop(): void }[];
+  }
+}
 
 // Conditionally import native modules (not available on web)
 let Audio: any = null;
@@ -58,8 +72,8 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
   } = useAppStore();
 
   const [currentSymptom, setCurrentSymptom] = useState({
-    english: "High Fever",
-    luganda: "Omusujja ogw'amaanyi",
+    english: "",
+    luganda: "",
   });
   const [hasRecorded, setHasRecorded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,6 +85,8 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
   const [isTranslating, setIsTranslating] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [useTextMode, setUseTextMode] = useState(false);
+  const [manualText, setManualText] = useState<string>("");
 
   // Platform-aware alert function
   const showAlert = (title: string, message: string, onOk?: () => void) => {
@@ -136,15 +152,72 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
   };
 
   const handleMicPress = async () => {
-    // Web platform doesn't support audio recording
+    // Web platform: Use browser MediaRecorder API
     if (Platform.OS === 'web' || !Audio) {
-      showAlert(
-        "Not Available on Web",
-        "Audio recording is only available on mobile devices. For web testing, the system will use simulated transcription."
-      );
-      // Toggle recording state for UI testing
-      setIsRecording(!isRecording);
-      setHasRecorded(true);
+      if (!isRecording) {
+        // Start web recording
+        try {
+          console.log('Starting web audio recording...');
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          
+          // @ts-ignore - MediaRecorder types
+          const mediaRecorder = new MediaRecorder(stream);
+          const audioChunks: Blob[] = [];
+          
+          mediaRecorder.ondataavailable = (event: any) => {
+            audioChunks.push(event.data);
+          };
+          
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            setRecordingUri(audioUrl);
+            console.log('Web recording saved:', audioUrl);
+            
+            showAlert(
+              "Recording Stopped",
+              "Voice capture saved. Ready to process."
+            );
+            
+            // Stop all tracks
+            stream.getTracks().forEach(track => track.stop());
+          };
+          
+          mediaRecorder.start();
+          setRecording(mediaRecorder as any);
+          setIsRecording(true);
+          setHasRecorded(true);
+          
+          // Clear static text when recording starts
+          setCurrentSymptom({
+            english: "Recording... Speak now",
+            luganda: "Okuwandiisa... Yogera kati"
+          });
+          
+          showAlert(
+            "Recording Started",
+            "Voice capture is active. Speak clearly to record patient symptoms."
+          );
+        } catch (err) {
+          console.error('Web recording failed:', err);
+          showAlert('Recording Failed', 'Could not access microphone. Please grant permissions.');
+        }
+      } else {
+        // Stop web recording
+        try {
+          console.log('Stopping web recording...');
+          if (recording) {
+            (recording as any).stop();
+          }
+          setIsRecording(false);
+          setRecording(null);
+          
+          // Transcribe audio immediately after recording
+          setTimeout(() => transcribeAudio(audioUrl), 500);
+        } catch (err) {
+          console.error('Failed to stop web recording:', err);
+        }
+      }
       return;
     }
 
@@ -166,6 +239,12 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
         setRecording(newRecording);
         setIsRecording(true);
         setHasRecorded(true);
+        
+        // Clear static text when recording starts
+        setCurrentSymptom({
+          english: "Recording... Speak now",
+          luganda: "Okuwandiisa... Yogera kati"
+        });
         
         showAlert(
           "Recording Started",
@@ -191,11 +270,11 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
         
         showAlert(
           "Recording Stopped",
-          "Voice capture has been saved. Translating to Luganda..."
+          "Voice capture saved. Transcribing..."
         );
         
-        // Auto-translate to Luganda after recording
-        await translateToLuganda();
+        // Transcribe audio immediately after recording
+        await transcribeAudio(uri);
         
       } catch (err) {
         console.error('Failed to stop recording', err);
@@ -204,17 +283,56 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
     }
   };
 
-  // Translate English text to Luganda
-  const translateToLuganda = async () => {
-    if (!realTranscription && !currentSymptom.english) {
+  // Transcribe audio file to get English text
+  const transcribeAudio = async (audioUri: string) => {
+    if (!audioUri) return;
+    
+    try {
+      console.log('Transcribing audio...', audioUri);
+      
+      // Convert URI to blob
+      const response = await fetch(audioUri);
+      const blob = await response.blob();
+      
+      // Call transcribe-only endpoint
+      const result = await aiAPI.transcribeOnly(blob, 'en');
+      
+      if (result.transcription) {
+        const transcribedText = result.transcription;
+        setRealTranscription(transcribedText);
+        setDetectedLanguage(result.detected_language || 'en');
+        
+        console.log('✅ Transcription successful:', transcribedText);
+        
+        // Update English section immediately
+        setCurrentSymptom({
+          english: transcribedText,
+          luganda: 'Translating...'
+        });
+        
+        // Auto-translate to Luganda
+        await translateToLuganda(transcribedText);
+      }
+    } catch (error) {
+      console.error('Transcription error:', error);
+      showAlert(
+        'Transcription Failed',
+        'Could not transcribe audio. You can still complete intake with recorded audio.'
+      );
+    }
+  };
+
+  // Translate English text to Luganda using Argos Translate (FREE)
+  const translateToLuganda = async (text?: string) => {
+    const textToTranslate = text || realTranscription || currentSymptom.english;
+    
+    if (!textToTranslate) {
       return;
     }
     
     setIsTranslating(true);
     try {
-      const textToTranslate = realTranscription || currentSymptom.english;
-      
-      // Call Google Translate API through backend
+      // Call Argos Translate (FREE offline translation) through backend
       const response = await fetch(`${Platform.OS === 'web' ? 'http://127.0.0.1:8000' : 'http://10.0.2.2:8000'}/api/ai/translate/`, {
         method: 'POST',
         headers: {
@@ -235,15 +353,21 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
           english: textToTranslate,
           luganda: data.translated_text
         });
-        console.log('Translation successful:', data.translated_text);
+        console.log('✅ Translation successful:', data.translated_text);
       } else {
-        console.warn('Translation failed, using original');
-        setLugandaTranslation(currentSymptom.luganda);
+        console.warn('⚠️ Translation failed, keeping English');
+        setCurrentSymptom({
+          english: textToTranslate,
+          luganda: '[Translation unavailable]'
+        });
       }
     } catch (error) {
-      console.error('Translation error:', error);
-      // Fallback to original Luganda text
-      setLugandaTranslation(currentSymptom.luganda);
+      console.error('❌ Translation error:', error);
+      // Fallback - keep English, mark Luganda as unavailable
+      setCurrentSymptom({
+        english: textToTranslate,
+        luganda: '[Translation service offline]'
+      });
     } finally {
       setIsTranslating(false);
     }
@@ -251,6 +375,15 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
 
   // Speak text using Text-to-Speech
   const speakText = async (text: string, language: string = 'en') => {
+    // Don't speak Luganda text (sounds weird in English voice)
+    if (language === 'lg') {
+      showAlert(
+        'TTS Not Available',
+        'Text-to-speech for Luganda is not available. Only English is supported.'
+      );
+      return;
+    }
+    
     // Web platform fallback
     if (Platform.OS === 'web' || !Speech) {
       // Use Web Speech API if available
@@ -262,7 +395,7 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
         }
         
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = language === 'lg' ? 'en-US' : 'en-US'; // Luganda not supported, use English
+        utterance.lang = 'en-US'; // English only
         utterance.rate = 0.85;
         utterance.onend = () => setIsSpeaking(false);
         
@@ -323,42 +456,55 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
     setIsSubmitting(true);
 
     try {
-      console.log("Submitting intake for patient:", selectedPatient);
+      console.log("📤 Submitting intake for patient:", selectedPatient.id, selectedPatient.firstName);
       
-      // Use real transcription if available, otherwise simulated
-      let transcription = realTranscription;
-      let audioFile = undefined;
+      // Use real transcription if available
+      let transcription = realTranscription || currentSymptom.english;
       
-      if (recordingUri && Platform.OS !== 'web') {
-        // Create FormData with actual audio file
-        const formData = new FormData();
-        formData.append('patient_id', selectedPatient.id);
-        formData.append('language', detectedLanguage || 'en');
-        
-        // Add audio file blob
-        const response = await fetch(recordingUri);
-        const blob = await response.blob();
-        formData.append('audio_file', blob, 'recording.m4a');
-        
-        // TODO: Update aiAPI.submitCase to accept FormData
-        console.log('Submitting with audio file:', recordingUri);
-      } else {
-        // Fallback to simulated transcription for web or if no recording
-        transcription = transcription || `Patient complains of ${currentSymptom.english.toLowerCase()}. Symptoms have been present for a few days.`;
+      // Prepare audio file blob if available
+      let audioBlob = undefined;
+      if (recordingUri) {
+        try {
+          const response = await fetch(recordingUri);
+          audioBlob = await response.blob();
+          console.log(`✅ Audio blob created: ${audioBlob.size} bytes (${audioBlob.type})`);
+        } catch (error) {
+          console.error('❌ Failed to read audio file:', error);
+        }
       }
       
-      // Call the real AI API
+      // Validate we have either audio or transcription
+      if (!transcription && !audioBlob) {
+        throw new Error('No audio recording or transcription available. Please record again.');
+      }
+      
+      console.log(`📝 Submitting with transcription: "${transcription?.substring(0, 50)}..."`);
+      console.log(`🔊 Has audio blob: ${!!audioBlob}`);
+      
+      // Call the real AI API with audio file
       const result = await aiAPI.submitCase(
         selectedPatient.id,
-        undefined, // audioFile - In real app, you'd capture actual audio
+        audioBlob,
         transcription,
-        "en"
+        detectedLanguage || "en"
       );
+      
+      console.log("✅ API Response received:", result);
       
       console.log("AI Triage Result:", result);
       
       // Handle nested result structure from API
       const actualResult = result.result || result;
+      
+      // Check if transcription failed (Whisper quota exceeded)
+      if (actualResult.error && actualResult.error.includes('Whisper') || 
+          actualResult.error && actualResult.error.includes('quota')) {
+        showAlert(
+          "⚠️ Audio Transcription Unavailable",
+          "OpenAI Whisper credits exhausted. But don't worry! Your recorded symptom text has been submitted instead.\n\nTo fix: Add credits at platform.openai.com/billing"
+        );
+        // Continue processing - the system uses the transcription text
+      }
       
       // Store real transcription from API
       if (actualResult.transcription) {
@@ -455,12 +601,30 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
         }
       );
     } catch (error: any) {
-      console.error("Error submitting intake:", error);
-      console.error("Error details:", error.response?.data);
-      const errorMessage = error.response?.data?.detail || error.message || "Unknown error occurred";
+      console.error("❌ Error submitting intake:", error);
+      console.error("❌ Full error object:", JSON.stringify(error, null, 2));
+      
+      let errorMessage = "Unknown error occurred";
+      
+      // Handle different error types
+      if (error.response) {
+        // Server responded with error
+        console.error("❌ Server error response:", error.response.data);
+        console.error("❌ Status code:", error.response.status);
+        errorMessage = error.response.data?.error || error.response.data?.detail || 
+                       `Server error: ${error.response.status}`;
+      } else if (error.request) {
+        // Request made but no response
+        console.error("❌ No response from server");
+        errorMessage = "Cannot reach server. Check if backend is running on port 8000.";
+      } else {
+        // Error in request setup
+        errorMessage = error.message || "Failed to create request";
+      }
+      
       showAlert(
         "Submission Failed",
-        `Failed to submit patient intake: ${errorMessage}\n\nPlease check your connection and try again.`
+        `❌ ${errorMessage}\n\n🔍 Troubleshooting:\n• Check backend is running (python manage.py runserver)\n• Verify patient ID: ${selectedPatient?.id}\n• Check console for detailed logs`
       );
     } finally {
       setIsSubmitting(false);
@@ -497,7 +661,7 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
     }
   };
 
-  const waveHeights = [32, 64, 96, 128, 80, 112, 144, 96, 48, 80, 40];
+  const waveHeights = [20, 40, 60, 80, 50, 70, 90, 60, 30, 50, 25];
   const waveOpacities = [0.3, 0.5, 0.7, 1, 0.8, 0.9, 1, 0.7, 0.5, 0.6, 0.3];
 
   return (
@@ -576,8 +740,77 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
         </View>
       </Modal>
 
-      {/* Main Content */}
-      <View style={styles.mainContent}>
+      {/* Main Content - Now Scrollable */}
+      <ScrollView 
+        style={styles.mainContent}
+        contentContainerStyle={styles.mainContentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Mode Toggle */}
+        <View style={styles.modeToggleCard}>
+          <View style={styles.modeToggleLeft}>
+            <MaterialIcons 
+              name={useTextMode ? "keyboard" : "mic"} 
+              size={24} 
+              color={COLORS.primary} 
+            />
+            <View>
+              <Text style={styles.modeToggleTitle}>
+                {useTextMode ? "Text Mode" : "Voice Mode"}
+              </Text>
+              <Text style={styles.modeToggleSubtitle}>
+                {useTextMode ? "Type symptoms manually" : "Record with microphone"}
+              </Text>
+            </View>
+          </View>
+          <Switch
+            value={useTextMode}
+            onValueChange={setUseTextMode}
+            trackColor={{ false: COLORS.slate300, true: COLORS.primary }}
+            thumbColor={COLORS.white}
+          />
+        </View>
+
+        {/* Text Input (when in text mode) */}
+        {useTextMode && (
+          <View style={styles.textInputCard}>
+            <Text style={styles.textInputLabel}>Enter Patient Symptoms</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="e.g. patient has high fever, cough, and vomiting for 3 days..."
+              placeholderTextColor={COLORS.slate400}
+              value={manualText}
+              onChangeText={(text) => {
+                setManualText(text);
+                setRealTranscription(text);
+                setHasRecorded(true);
+                setCurrentSymptom({
+                  english: text,
+                  luganda: "Translating..."
+                });
+              }}
+              multiline
+              numberOfLines={6}
+              textAlignVertical="top"
+              onBlur={() => {
+                if (manualText) {
+                  translateToLuganda(manualText);
+                }
+              }}
+            />
+            <TouchableOpacity 
+              style={styles.translateButton}
+              onPress={() => translateToLuganda(manualText)}
+              disabled={!manualText || isTranslating}
+            >
+              <MaterialIcons name="translate" size={20} color={COLORS.white} />
+              <Text style={styles.translateButtonText}>
+                {isTranslating ? "Translating..." : "Translate to Luganda"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Symptom Card */}
         <View style={styles.symptomCard}>
           <View style={styles.symptomSection}>
@@ -594,7 +827,7 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
               </TouchableOpacity>
             </View>
             <Text style={styles.symptomText}>
-              {realTranscription || currentSymptom.english}
+              {realTranscription || currentSymptom.english || "Tap microphone below to start recording..."}
             </Text>
           </View>
           <View style={styles.divider} />
@@ -625,12 +858,13 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
               </View>
             </View>
             <Text style={styles.symptomText}>
-              {lugandaTranslation || currentSymptom.luganda}
+              {lugandaTranslation || currentSymptom.luganda || "Nyiga mikrofoni wansi okutandika..."}
             </Text>
           </View>
         </View>
 
-        {/* Voice Capture Section */}
+        {/* Voice Capture Section (smaller, only shown in voice mode) */}
+        {!useTextMode && (
         <View style={styles.voiceCaptureSection}>
           <View style={styles.captureStatusContainer}>
             <Text style={styles.captureStatus}>
@@ -689,9 +923,11 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
             </View>
           </View>
         </View>
-      </View>
+        )}
+      </ScrollView>
 
-      {/* Microphone Button Section */}
+      {/* Microphone Button Section (only in voice mode) */}
+      {!useTextMode && (
       <View style={styles.micSection}>
         {/* Complete Button (shown after recording) */}
         {hasRecorded && !isRecording && (
@@ -744,6 +980,31 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
           </Text>
         </View>
       </View>
+      )}
+
+      {/* Complete Button (in text mode) */}
+      {useTextMode && (
+        <View style={styles.textModeFooter}>
+          <TouchableOpacity
+            style={[styles.completeButton, (isSubmitting || !hasRecorded) && styles.completeButtonDisabled]}
+            onPress={handleCompleteIntake}
+            disabled={isSubmitting || !hasRecorded}
+            activeOpacity={0.8}
+          >
+            {isSubmitting ? (
+              <>
+                <ActivityIndicator size="small" color={COLORS.white} />
+                <Text style={styles.completeButtonText}>Submitting...</Text>
+              </>
+            ) : (
+              <>
+                <MaterialIcons name="check-circle" size={20} color={COLORS.white} />
+                <Text style={styles.completeButtonText}>Complete Intake</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -821,8 +1082,81 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
+  },
+  mainContentContainer: {
     padding: 16,
-    gap: 24,
+    gap: 16,
+    paddingBottom: 32,
+  },
+  modeToggleCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: COLORS.softBlue,
+  },
+  modeToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  modeToggleTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.deepBlue,
+  },
+  modeToggleSubtitle: {
+    fontSize: 12,
+    color: COLORS.slate500,
+  },
+  textInputCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: COLORS.softBlue,
+    gap: 12,
+  },
+  textInputLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  textInput: {
+    backgroundColor: COLORS.slate50,
+    borderRadius: 8,
+    padding: 16,
+    fontSize: 16,
+    color: COLORS.deepBlue,
+    minHeight: 120,
+    borderWidth: 1,
+    borderColor: COLORS.slate200,
+  },
+  translateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: COLORS.primary,
+    padding: 12,
+    borderRadius: 8,
+  },
+  translateButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
+  textModeFooter: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: COLORS.slate100,
   },
   symptomCard: {
     backgroundColor: COLORS.white,
@@ -852,10 +1186,10 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   voiceCaptureSection: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 32,
+    gap: 20,
+    paddingVertical: 16,
   },
   captureStatusContainer: {
     alignItems: "center",
@@ -875,13 +1209,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    height: 150,
+    gap: 4,
+    height: 80,
     width: "100%",
-    maxWidth: 280,
+    maxWidth: 200,
   },
   waveBar: {
-    width: 8,
+    width: 5,
     backgroundColor: COLORS.primary,
     borderRadius: 99,
     minHeight: 4,
