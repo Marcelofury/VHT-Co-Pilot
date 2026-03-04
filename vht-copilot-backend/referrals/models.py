@@ -74,7 +74,7 @@ class Referral(models.Model):
     
     # AI Decision Tracking
     ai_reasoning = models.TextField(blank=True, help_text="AI's reasoning for this referral")
-    guideline_citation = models.CharField(max_length=500, blank=True)
+    guideline_citation = models.CharField(max_length=500, blank=True, null=True, default='')
     validation_passed = models.BooleanField(default=True)
     validation_notes = models.TextField(blank=True)
     

@@ -48,10 +48,12 @@ class ReferralListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views"""
     patient_name = serializers.CharField(source='patient.full_name', read_only=True)
     hospital_name = serializers.CharField(source='hospital.name', read_only=True)
+    vht_code = serializers.CharField(source='referred_by.username', read_only=True)
+    triage_level = serializers.CharField(source='urgency_level', read_only=True)
     
     class Meta:
         model = Referral
         fields = [
-            'id', 'referral_code', 'patient_name', 'hospital_name',
-            'urgency_level', 'status', 'triage_score', 'created_at'
+            'id', 'referral_code', 'patient_name', 'hospital_name', 'vht_code',
+            'urgency_level', 'triage_level', 'status', 'triage_score', 'created_at'
         ]

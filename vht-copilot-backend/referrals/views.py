@@ -112,6 +112,33 @@ class ReferralViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
+    def my_referrals(self, request):
+        """Get referrals created by the current VHT user"""
+        if request.user.role != 'VHT':
+            return Response(
+                {'error': 'Only VHT users can access this endpoint'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        queryset = Referral.objects.filter(referred_by=request.user)
+        
+        # Apply status filters if provided
+        status_filter = request.query_params.get('status', None)
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+        
+        # Active referrals only
+        active_only = request.query_params.get('active_only', None)
+        if active_only == 'true':
+            queryset = queryset.filter(
+                status__in=['PENDING', 'CONFIRMED', 'IN_TRANSIT', 'ARRIVED']
+            )
+        
+        queryset = queryset.select_related('patient', 'hospital', 'referred_by').order_by('-created_at')
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
     def hospital_stats(self, request):
         """Get referral statistics for the current user's hospital"""
         if request.user.role != 'HOSPITAL' or not request.user.hospital:
@@ -166,9 +193,25 @@ class ReferralViewSet(viewsets.ModelViewSet):
         referral.hospital_notified_at = timezone.now()
         referral.save()
         
-        # TODO: Send notification to VHT (SMS/Push notification)
-        # For now, log it
-        from core.models import AuditLog
+        # Create notification for VHT
+        from core.models import AuditLog, Notification
+        
+        # Send notification to the VHT who made the referral
+        Notification.objects.create(
+            user=referral.referred_by,
+            notification_type='REFERRAL_ACCEPTED',
+            title=f'Referral Accepted - {referral.patient.full_name}',
+            message=f'{request.user.hospital.name} has accepted your referral for {referral.patient.full_name}. Referral code: {referral.referral_code}',
+            metadata={
+                'referral_id': referral.id,
+                'referral_code': referral.referral_code,
+                'patient_id': referral.patient.id,
+                'hospital_id': referral.hospital.id,
+                'hospital_name': request.user.hospital.name,
+            }
+        )
+        
+        # Log audit trail
         AuditLog.objects.create(
             user=request.user,
             action_type='REFERRAL_ACCEPTED',
