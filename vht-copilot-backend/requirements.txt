@@ -1,5 +1,5 @@
 # VHT Co-Pilot Backend - Requirements
-# Core packages for development (SQLite) and production (PostgreSQL)
+# Production-ready packages for Render deployment
 
 # Django Core
 Django==5.0.2
@@ -7,16 +7,15 @@ djangorestframework==3.14.0
 django-cors-headers==4.3.1
 djangorestframework-simplejwt==5.3.1
 
-# AI/ML Stack (install when ready)
+# AI/ML Stack
 openai==1.12.0
 langchain==0.1.7
 langchain-openai==0.0.5
 chromadb==0.4.22
 
-# Speech Recognition (FREE - no API key needed)
+# Speech Recognition (server-side processing only)
 SpeechRecognition==3.10.1
-pydub==0.25.1  # Audio format conversion
-PyAudio==0.2.14  # Audio I/O (optional, for microphone input)
+pydub==0.25.1  # Audio format conversion (uses FFmpeg, not PyAudio)
 
 # Geospatial
 geopy==2.4.1
@@ -33,15 +32,9 @@ psycopg2-binary==2.9.9  # PostgreSQL for production
 whitenoise==6.6.0  # Static file serving
 dj-database-url==2.1.0  # Database URL parser
 
-# Development & Testing
-pytest==8.0.0
-pytest-django==4.8.0
-
-# Optional packages (uncomment when needed):
-# celery==5.3.6  # Async task processing
-# redis==5.0.1  # Task queue backend
-# sentence-transformers==2.3.1  # Local embeddings (large download)
-
-# SMS (optional - uncomment when needed)
+# Development & Testing (optional - not needed for deployment)
+# pytest==8.0.0
+# pytest-django==4.8.0
+# PyAudio==0.2.14  # Only for local microphone input, not needed on server
 # twilio==9.0.0
 # africastalking==1.2.5

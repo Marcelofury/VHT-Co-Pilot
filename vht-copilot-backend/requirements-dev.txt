@@ -1,0 +1,12 @@
+# Development-only requirements
+# Install these locally with: pip install -r requirements-dev.txt
+
+-r requirements.txt  # Include production requirements
+
+# Local Development Tools
+pytest==8.0.0
+pytest-django==4.8.0
+PyAudio==0.2.14  # For local microphone input testing
+
+# Optional: Local AI processing
+# sentence-transformers==2.3.1  # Local embeddings (large download ~500MB)
