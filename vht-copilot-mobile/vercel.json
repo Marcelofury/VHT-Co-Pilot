@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "name": "vht-copilot",
   "builds": [
     {
       "src": "package.json",
