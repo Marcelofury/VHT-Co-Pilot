@@ -11,7 +11,9 @@ djangorestframework-simplejwt==5.3.1
 openai==1.12.0
 langchain==0.1.7
 langchain-openai==0.0.5
-chromadb==0.4.22
+# chromadb==0.4.22  # Only needed for local embeddings (USE_LOCAL_EMBEDDINGS=true)
+                    # Commented out for production - requires Rust compiler
+                    # Production uses GROQ AI, which doesn't need vector DB
 
 # Speech Recognition (server-side processing only)
 SpeechRecognition==3.10.1
