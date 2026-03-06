@@ -86,8 +86,6 @@ def health_check(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-@api_view(['GET'])
-@permission_classes([AllowAny])
 def get_uganda_locations(request):
     """
     Get Uganda location data from database (districts, villages)
