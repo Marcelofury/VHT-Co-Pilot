@@ -10,7 +10,9 @@ djangorestframework-simplejwt==5.3.1
 # AI/ML Stack
 openai==1.12.0
 langchain==0.1.7
-langchain-openai==0.0.5
+# langchain-openai==0.0.5  # Only needed for OpenAI LLM operations
+                           # Commented out - requires tiktoken (Rust compiler dependency)
+                           # Production uses GROQ AI via direct API, not LangChain OpenAI
 # chromadb==0.4.22  # Only needed for local embeddings (USE_LOCAL_EMBEDDINGS=true)
                     # Commented out for production - requires Rust compiler
                     # Production uses GROQ AI, which doesn't need vector DB
