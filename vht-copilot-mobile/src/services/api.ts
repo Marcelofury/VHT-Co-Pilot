@@ -5,6 +5,14 @@ import { Platform } from "react-native";
 
 // Helper to get server base URL
 const getServerBaseUrl = () => {
+  // Check for production API URL from environment variable
+  const productionUrl = process.env.EXPO_PUBLIC_API_URL;
+  
+  if (productionUrl) {
+    return productionUrl;
+  }
+  
+  // Development fallback
   if (Platform.OS === 'web') {
     return "http://127.0.0.1:8000";
   } else if (Platform.OS === 'android') {
