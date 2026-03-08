@@ -78,8 +78,18 @@ const transformUserFromAPI = (data: any): VHTMember => ({
   hospitalId: data.hospital_id,
 });
 
-// API Base URL - Changes based on platform
+// API Base URL - Changes based on platform and environment
 const getApiBaseUrl = () => {
+  // Check for production API URL from environment variable (embedded at build time)
+  const productionUrl = process.env.EXPO_PUBLIC_API_URL;
+  
+  if (productionUrl) {
+    console.log('Using production API URL:', productionUrl);
+    return `${productionUrl}/api`;
+  }
+  
+  // Development fallback
+  console.log('Using development API URL (localhost)');
   if (Platform.OS === 'web') {
     return "http://127.0.0.1:8000/api";
   } else if (Platform.OS === 'android') {
@@ -90,6 +100,7 @@ const getApiBaseUrl = () => {
 };
 
 const API_BASE_URL = getApiBaseUrl();
+console.log('Axios instance configured with baseURL:', API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
