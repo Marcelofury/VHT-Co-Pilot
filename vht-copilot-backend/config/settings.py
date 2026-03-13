@@ -19,7 +19,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key-change-in-producti
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if host.strip()]
 
 # Application definition
 INSTALLED_APPS = [
@@ -154,7 +154,29 @@ SIMPLE_JWT = {
 }
 
 # CORS Settings
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:8081').split(',')
+DEFAULT_CORS_ALLOWED_ORIGINS = (
+    'http://localhost:8081,'
+    'http://127.0.0.1:8081,'
+    'http://localhost:3000,'
+    'http://127.0.0.1:3000,'
+    'https://vht-co-pilot.vercel.app'
+)
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv('CORS_ALLOWED_ORIGINS', DEFAULT_CORS_ALLOWED_ORIGINS).split(',')
+    if origin.strip()
+]
+
+DEFAULT_CORS_ALLOWED_ORIGIN_REGEXES = (
+    r'^https://vht-co-pilot-.*\.vercel\.app$,'
+    r'^http://192\.168\.\d+\.\d+(:\d+)?$'
+)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    regex.strip()
+    for regex in os.getenv('CORS_ALLOWED_ORIGIN_REGEXES', DEFAULT_CORS_ALLOWED_ORIGIN_REGEXES).split(',')
+    if regex.strip()
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
 # OpenAI Configuration
