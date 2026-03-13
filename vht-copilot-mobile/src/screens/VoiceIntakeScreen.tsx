@@ -19,7 +19,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
 import { useAppStore } from "../stores/appStore";
-import { aiAPI } from "../services/api";
+import { aiAPI, patientAPI } from "../services/api";
 
 // Web API type extensions
 declare global {
@@ -56,6 +56,7 @@ interface VoiceIntakeScreenProps {
 export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
   onBack,
   onNavigate,
+  patientId,
 }) => {
   const {
     isRecording,
@@ -63,6 +64,7 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
     triageScore,
     currentTriageLevel,
     selectedPatient,
+    selectPatient,
     setTriageScore,
     setTriageLevel,
     addAIAction,
@@ -109,6 +111,28 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
       }
     })();
   }, []);
+
+  // Ensure selected patient is loaded when navigating from intake form with patientId.
+  useEffect(() => {
+    const ensureSelectedPatient = async () => {
+      if (!patientId) {
+        return;
+      }
+
+      if (selectedPatient && String(selectedPatient.id) === String(patientId)) {
+        return;
+      }
+
+      try {
+        const patient = await patientAPI.getById(String(patientId));
+        selectPatient(patient);
+      } catch (error) {
+        console.error("Failed to load selected patient for voice intake:", error);
+      }
+    };
+
+    ensureSelectedPatient();
+  }, [patientId, selectedPatient, selectPatient]);
 
   // Animated wave bars
   const waveAnimations = useRef(

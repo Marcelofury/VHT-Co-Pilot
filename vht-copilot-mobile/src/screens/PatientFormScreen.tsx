@@ -148,6 +148,7 @@ export const PatientFormScreen: React.FC<PatientFormScreenProps> = ({
         age: age, // Backend accepts string for age (e.g., "8mo" or "42")
         gender: gender, // MALE or FEMALE
         village: village,
+        district: district,
         latitude: latitude,
         longitude: longitude,
         phone_number: phoneNumber || undefined,
