@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
-import { authAPI, hospitalAPI } from "../services/api";
+import { authAPI, hospitalAPI, locationAPI } from "../services/api";
 
 // Web-compatible alert
 const showAlert = (title: string, message: string, onOk?: () => void) => {
@@ -94,10 +94,10 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const fetchDistricts = async () => {
     setLoadingDistricts(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/locations/?action=districts');
-      const data = await response.json();
-      setDistricts(data.districts || []);
-      console.log(`Loaded ${data.districts?.length || 0} districts`);
+      const districtsList = await locationAPI.getDistricts();
+      const normalized = (districtsList || []).map((name) => ({ name }));
+      setDistricts(normalized);
+      console.log(`Loaded ${normalized.length} districts`);
     } catch (error) {
       console.error("Error fetching districts:", error);
     } finally {
@@ -108,10 +108,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const fetchVillages = async (districtName: string) => {
     setLoadingVillages(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/locations/?action=villages&district=${encodeURIComponent(districtName)}`);
-      const data = await response.json();
-      setVillages(data.villages || []);
-      console.log(`Loaded ${data.villages?.length || 0} villages for ${districtName}`);
+      const villagesList = await locationAPI.getVillages(districtName);
+      setVillages(villagesList || []);
+      console.log(`Loaded ${villagesList?.length || 0} villages for ${districtName}`);
     } catch (error) {
       console.error("Error fetching villages:", error);
       setVillages([]);
