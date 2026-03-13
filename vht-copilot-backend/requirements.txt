@@ -9,6 +9,7 @@ djangorestframework-simplejwt==5.3.1
 
 # AI/ML Stack
 openai==1.12.0
+groq==0.11.0
 langchain==0.1.7
 # langchain-openai==0.0.5  # Only needed for OpenAI LLM operations
                            # Commented out - requires tiktoken (Rust compiler dependency)
