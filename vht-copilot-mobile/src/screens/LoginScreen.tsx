@@ -34,15 +34,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const { setCurrentUser } = useAppStore();
 
   const handleLogin = async () => {
-    if (!username.trim() || !password.trim()) {
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedUsername || !trimmedPassword) {
       Alert.alert("Error", "Please enter both username and password");
       return;
     }
 
     setIsLoading(true);
     try {
-      console.log("Attempting login with:", username);
-      const response = await authAPI.login(username, password);
+      console.log("Attempting login with:", trimmedUsername);
+      const response = await authAPI.login(trimmedUsername, trimmedPassword);
       console.log("Login successful, fetching profile...");
       
       // Load user profile
@@ -54,7 +57,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       onLoginSuccess?.();
     } catch (error: any) {
       console.error("Login error:", error);
-      const message = error.response?.data?.detail || "Invalid credentials";
+      const message =
+        error.response?.data?.details?.detail ||
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        "Invalid credentials";
       Alert.alert("Login Failed", message);
     } finally {
       setIsLoading(false);

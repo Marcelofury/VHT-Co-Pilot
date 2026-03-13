@@ -490,7 +490,10 @@ export const authAPI = {
     username: string,
     password: string,
   ): Promise<{ access: string; refresh: string }> => {
-    const response = await api.post("/auth/token/", { username, password });
+    const response = await api.post("/auth/token/", {
+      username: username.trim(),
+      password: password.trim(),
+    });
     setAuthToken(response.data.access);
     return response.data;
   },
