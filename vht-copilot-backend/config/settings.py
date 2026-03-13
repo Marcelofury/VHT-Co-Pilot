@@ -120,6 +120,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # WhiteNoise static file storage
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Avoid hard failures when a manifest entry is temporarily missing during deploys.
+WHITENOISE_MANIFEST_STRICT = False
 
 # Media files (user uploads)
 MEDIA_URL = 'media/'
