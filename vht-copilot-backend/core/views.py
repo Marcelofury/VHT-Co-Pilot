@@ -97,18 +97,19 @@ def get_uganda_locations(request):
     if action == 'districts':
         # Get all districts from database
         districts = District.objects.all().order_by('name')
-        districts_data = [
-            {
-                'id': d.id,
-                'name': d.name,
-                'region': d.region,
-                'latitude': d.latitude,
-                'longitude': d.longitude,
-                'village_count': d.village_count
-            }
-            for d in districts
-        ]
-        return Response({'districts': districts_data})
+        if districts.exists():
+            districts_data = [
+                {
+                    'id': d.id,
+                    'name': d.name,
+                    'region': d.region,
+                    'latitude': d.latitude,
+                    'longitude': d.longitude,
+                    'village_count': d.village_count
+                }
+                for d in districts
+            ]
+            return Response({'districts': districts_data})
     
     elif action == 'villages':
         # Get villages for a specific district
@@ -119,19 +120,20 @@ def get_uganda_locations(request):
         try:
             district = District.objects.get(name=district_name)
         except District.DoesNotExist:
-            return Response({'error': 'District not found'}, status=status.HTTP_404_NOT_FOUND)
+            district = None
         
-        villages = Village.objects.filter(district=district).order_by('name')
-        villages_data = [
-            {
-                'id': v.id,
-                'name': v.name,
-                'latitude': v.latitude,
-                'longitude': v.longitude
-            }
-            for v in villages
-        ]
-        return Response({'villages': villages_data})
+        if district is not None:
+            villages = Village.objects.filter(district=district).order_by('name')
+            villages_data = [
+                {
+                    'id': v.id,
+                    'name': v.name,
+                    'latitude': v.latitude,
+                    'longitude': v.longitude
+                }
+                for v in villages
+            ]
+            return Response({'villages': villages_data})
     
     elif action == 'village_coordinates':
         # Get coordinates for a specific village
@@ -150,7 +152,7 @@ def get_uganda_locations(request):
                 'longitude': village.longitude
             })
         except (District.DoesNotExist, Village.DoesNotExist):
-            return Response({'error': 'Location not found'}, status=status.HTTP_404_NOT_FOUND)
+            pass
     
     # Fallback: Legacy support for python file-based data
     from .uganda_locations import get_all_districts, get_sub_counties, get_parishes, get_coordinates

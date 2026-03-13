@@ -581,7 +581,15 @@ export const hospitalAPI = {
 export const locationAPI = {
   getDistricts: async (): Promise<string[]> => {
     const response = await api.get("/locations/", { params: { action: 'districts' } });
-    return response.data.districts;
+    const districts = response.data?.districts || [];
+    if (!Array.isArray(districts)) {
+      return [];
+    }
+
+    // Backend may return either string names or district objects.
+    return districts
+      .map((district: any) => (typeof district === 'string' ? district : district?.name))
+      .filter((name: any): name is string => typeof name === 'string' && name.trim().length > 0);
   },
 
   getSubCounties: async (district: string): Promise<string[]> => {
