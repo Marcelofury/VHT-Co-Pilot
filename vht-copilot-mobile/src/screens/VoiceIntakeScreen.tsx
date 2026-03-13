@@ -356,20 +356,7 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
     
     setIsTranslating(true);
     try {
-      // Call Argos Translate (FREE offline translation) through backend
-      const response = await fetch(`${Platform.OS === 'web' ? 'http://127.0.0.1:8000' : 'http://10.0.2.2:8000'}/api/ai/translate/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: textToTranslate,
-          target_language: 'lg',
-          source_language: 'en'
-        })
-      });
-      
-      const data = await response.json();
+      const data = await aiAPI.translateText(textToTranslate, 'lg', 'en');
       
       if (data.translated_text) {
         setLugandaTranslation(data.translated_text);

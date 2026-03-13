@@ -293,6 +293,26 @@ export const aiAPI = {
     });
     return response.data;
   },
+
+  // Text translation endpoint
+  translateText: async (
+    text: string,
+    targetLanguage: string = "lg",
+    sourceLanguage: string = "en",
+  ): Promise<{
+    translated_text: string;
+    source_language: string;
+    target_language: string;
+    success: boolean;
+    error?: string;
+  }> => {
+    const response = await api.post("/ai/translate/", {
+      text,
+      target_language: targetLanguage,
+      source_language: sourceLanguage,
+    });
+    return response.data;
+  },
 };
 
 // Note: Triage is now integrated into aiAPI.submitCase()
