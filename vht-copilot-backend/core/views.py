@@ -157,6 +157,9 @@ def get_uganda_locations(request):
     # Fallback: Legacy support for python file-based data
     from .uganda_locations import get_all_districts, get_sub_counties, get_parishes, get_coordinates
     from .uganda_villages import get_all_villages, get_village_coordinates, UGANDA_VILLAGES
+
+    if action == 'districts':
+        return Response({'districts': get_all_districts()})
     
     if action == 'sub_counties':
         district = request.query_params.get('district')
