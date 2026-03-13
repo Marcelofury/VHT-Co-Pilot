@@ -154,28 +154,42 @@ SIMPLE_JWT = {
 }
 
 # CORS Settings
-DEFAULT_CORS_ALLOWED_ORIGINS = (
-    'http://localhost:8081,'
-    'http://127.0.0.1:8081,'
-    'http://localhost:3000,'
-    'http://127.0.0.1:3000,'
-    'https://vht-co-pilot.vercel.app'
-)
-CORS_ALLOWED_ORIGINS = [
+DEFAULT_CORS_ALLOWED_ORIGINS = [
+    'http://localhost:8081',
+    'http://127.0.0.1:8081',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://vht-co-pilot.vercel.app',
+]
+
+env_cors_origins = [
     origin.strip()
-    for origin in os.getenv('CORS_ALLOWED_ORIGINS', DEFAULT_CORS_ALLOWED_ORIGINS).split(',')
+    for origin in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
     if origin.strip()
 ]
 
-DEFAULT_CORS_ALLOWED_ORIGIN_REGEXES = (
-    r'^https://vht-co-pilot-.*\.vercel\.app$,'
-    r'^http://192\.168\.\d+\.\d+(:\d+)?$'
-)
-CORS_ALLOWED_ORIGIN_REGEXES = [
+# Keep defaults always enabled and ignore malformed wildcard origins.
+merged_cors_origins = DEFAULT_CORS_ALLOWED_ORIGINS + env_cors_origins
+CORS_ALLOWED_ORIGINS = list(dict.fromkeys([
+    origin
+    for origin in merged_cors_origins
+    if origin.startswith(('http://', 'https://')) and '*' not in origin
+]))
+
+DEFAULT_CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'^https://vht-co-pilot-.*\.vercel\.app$',
+    r'^http://192\.168\.\d+\.\d+(:\d+)?$',
+]
+
+env_cors_origin_regexes = [
     regex.strip()
-    for regex in os.getenv('CORS_ALLOWED_ORIGIN_REGEXES', DEFAULT_CORS_ALLOWED_ORIGIN_REGEXES).split(',')
+    for regex in os.getenv('CORS_ALLOWED_ORIGIN_REGEXES', '').split(',')
     if regex.strip()
 ]
+
+CORS_ALLOWED_ORIGIN_REGEXES = list(dict.fromkeys(
+    DEFAULT_CORS_ALLOWED_ORIGIN_REGEXES + env_cors_origin_regexes
+))
 
 CORS_ALLOW_CREDENTIALS = True
 

@@ -8,8 +8,7 @@ pip install -r requirements.txt
 # Collect static files
 python manage.py collectstatic --no-input
 
-# Run migrations
-python manage.py migrate
+# Migrations are executed in the Render start command so they run against the runtime database.
 
 # Create superuser if needed (optional)
 # python manage.py createsuperuser --no-input || true
