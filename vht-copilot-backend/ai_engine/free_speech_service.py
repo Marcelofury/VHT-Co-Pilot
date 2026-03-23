@@ -155,6 +155,24 @@ class FreeSpeechService:
                 except:
                     pass
     
+    def _resolve_ffmpeg_binaries(self):
+        """Resolve ffmpeg/ffprobe from env, PATH, or bundled python package."""
+        from pydub.utils import which
+
+        ffmpeg_path = os.getenv('FFMPEG_BINARY') or which('ffmpeg')
+        ffprobe_path = os.getenv('FFPROBE_BINARY') or which('ffprobe')
+
+        # Fallback: imageio-ffmpeg bundles an ffmpeg binary for many platforms.
+        if not ffmpeg_path:
+            try:
+                import imageio_ffmpeg
+                ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+                logger.info(f"Using bundled ffmpeg from imageio-ffmpeg: {ffmpeg_path}")
+            except Exception as e:
+                logger.warning(f"imageio-ffmpeg fallback unavailable: {e}")
+
+        return ffmpeg_path, ffprobe_path
+
     def convert_audio_format(self, input_path: str, output_path: str = None) -> str:
         """
         Convert audio to WAV format (required for SpeechRecognition)
@@ -168,29 +186,24 @@ class FreeSpeechService:
         """
         try:
             from pydub import AudioSegment
-            from pydub.utils import which
-            import os
-            
-            # Hardcoded paths for your system
-            ffmpeg_path = r'C:\Users\USER\Downloads\ffmpeg-8.0.1-essentials_build\bin\ffmpeg.exe'
-            ffprobe_path = r'C:\Users\USER\Downloads\ffmpeg-8.0.1-essentials_build\bin\ffprobe.exe'
-            
-            # Verify files exist
-            if not os.path.exists(ffmpeg_path):
-                raise Exception(f"FFmpeg not found at: {ffmpeg_path}")
-            if not os.path.exists(ffprobe_path):
-                raise Exception(f"FFprobe not found at: {ffprobe_path}")
-            
-            # Set environment variables for pydub
-            os.environ["PATH"] += os.pathsep + r"C:\Users\USER\Downloads\ffmpeg-8.0.1-essentials_build\bin"
-            
-            # Configure AudioSegment BEFORE using it
+
+            ffmpeg_path, ffprobe_path = self._resolve_ffmpeg_binaries()
+            if not ffmpeg_path:
+                raise Exception(
+                    "FFmpeg not found. Set FFMPEG_BINARY/FFPROBE_BINARY or install ffmpeg in PATH."
+                )
+
+            # Configure AudioSegment before using it.
             AudioSegment.converter = ffmpeg_path
             AudioSegment.ffmpeg = ffmpeg_path
-            AudioSegment.ffprobe = ffprobe_path
+            if ffprobe_path:
+                AudioSegment.ffprobe = ffprobe_path
+            else:
+                logger.warning("ffprobe not found; continuing with ffmpeg only")
             
             logger.info(f"Using ffmpeg: {ffmpeg_path}")
-            logger.info(f"Using ffprobe: {ffprobe_path}")
+            if ffprobe_path:
+                logger.info(f"Using ffprobe: {ffprobe_path}")
             
             if output_path is None:
                 output_path = input_path.rsplit('.', 1)[0] + '_converted.wav'

@@ -21,6 +21,7 @@ langchain==0.1.7
 # Speech Recognition (server-side processing only)
 SpeechRecognition==3.10.1
 pydub==0.25.1  # Audio format conversion (uses FFmpeg, not PyAudio)
+imageio-ffmpeg==0.6.0  # Bundled ffmpeg binary for deployment fallback
 
 # Geospatial
 geopy==2.4.1

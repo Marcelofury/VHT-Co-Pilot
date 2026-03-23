@@ -173,9 +173,16 @@ def transcribe_only(request):
         audio_path = default_storage.save(f'temp_audio/{filename}', audio_file)
         audio_path = default_storage.path(audio_path)
         
-        # Transcribe
+        # Transcribe (free service first, Whisper fallback)
+        from .free_speech_service import free_speech_service
         from .whisper_service import whisper_service
-        result = whisper_service.transcribe_audio(audio_path, language)
+
+        result = free_speech_service.transcribe_audio(audio_path, language)
+        if not result.get('success'):
+            logger.warning(
+                f"Free speech transcription failed in transcribe_only: {result.get('error')}"
+            )
+            result = whisper_service.transcribe_audio(audio_path, language)
         
         # Clean up
         if os.path.exists(audio_path):
