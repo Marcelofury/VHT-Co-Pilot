@@ -10,9 +10,9 @@ services:
       - key: PYTHON_VERSION
         value: 3.12.0
       - key: DATABASE_URL
-        fromDatabase:
-          name: vht-copilot-db
-          property: connectionString
+        sync: false
+      - key: DB_SSLMODE
+        value: require
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
@@ -29,9 +29,3 @@ services:
         value: ^https://vht-co-pilot-.*\.vercel\.app$
       - key: OPENAI_API_KEY
         sync: false
-
-databases:
-  - name: vht-copilot-db
-    databaseName: vht_copilot
-    plan: free
-    user: vht_copilot_user

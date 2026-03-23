@@ -79,14 +79,22 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database - PostgreSQL for production, SQLite3 for development
 if os.getenv('DATABASE_URL'):
-    # Production: Use PostgreSQL from Render
+    # Production: Use PostgreSQL from an external provider (e.g., Supabase).
     import dj_database_url
+
+    database_config = dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+
+    # Supabase Postgres requires SSL in hosted environments.
+    if database_config.get('ENGINE') == 'django.db.backends.postgresql':
+        database_config.setdefault('OPTIONS', {})
+        database_config['OPTIONS'].setdefault('sslmode', os.getenv('DB_SSLMODE', 'require'))
+
     DATABASES = {
-        'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL'),
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+        'default': database_config,
     }
 else:
     # Development: Use SQLite3
@@ -200,6 +208,11 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
 OPENAI_TEMPERATURE = float(os.getenv('OPENAI_TEMPERATURE', '0.2'))
 WHISPER_MODEL = os.getenv('WHISPER_MODEL', 'whisper-1')
+
+# Supabase Project Configuration (optional, for direct Supabase APIs)
+SUPABASE_URL = os.getenv('SUPABASE_URL', '')
+SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY', '')
+SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY', '')
 
 # Groq Configuration (Free tier alternative for testing)
 GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
