@@ -58,6 +58,9 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
   onNavigate,
   patientId,
 }) => {
+  const RECORDING_PLACEHOLDER_EN = "Recording... Speak now";
+  const RECORDING_PLACEHOLDER_LG = "Okuwandiisa... Yogera kati";
+
   const {
     isRecording,
     setIsRecording,
@@ -192,7 +195,7 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
             audioChunks.push(event.data);
           };
           
-          mediaRecorder.onstop = () => {
+          mediaRecorder.onstop = async () => {
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
             const audioUrl = URL.createObjectURL(audioBlob);
             setRecordingUri(audioUrl);
@@ -205,6 +208,9 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
             
             // Stop all tracks
             stream.getTracks().forEach(track => track.stop());
+
+            // Transcribe right after browser recording finishes.
+            await transcribeAudio(audioUrl);
           };
           
           mediaRecorder.start();
@@ -214,8 +220,8 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
           
           // Clear static text when recording starts
           setCurrentSymptom({
-            english: "Recording... Speak now",
-            luganda: "Okuwandiisa... Yogera kati"
+            english: RECORDING_PLACEHOLDER_EN,
+            luganda: RECORDING_PLACEHOLDER_LG
           });
           
           showAlert(
@@ -235,9 +241,6 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
           }
           setIsRecording(false);
           setRecording(null);
-          
-          // Transcribe audio immediately after recording
-          setTimeout(() => transcribeAudio(audioUrl), 500);
         } catch (err) {
           console.error('Failed to stop web recording:', err);
         }
@@ -266,8 +269,8 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
         
         // Clear static text when recording starts
         setCurrentSymptom({
-          english: "Recording... Speak now",
-          luganda: "Okuwandiisa... Yogera kati"
+          english: RECORDING_PLACEHOLDER_EN,
+          luganda: RECORDING_PLACEHOLDER_LG
         });
         
         showAlert(
@@ -471,6 +474,14 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
       
       // Use real transcription if available
       let transcription = realTranscription || currentSymptom.english;
+
+      // Never submit placeholder recording prompt as clinical text.
+      const isPlaceholderTranscription =
+        transcription === RECORDING_PLACEHOLDER_EN ||
+        transcription === RECORDING_PLACEHOLDER_LG;
+      if (isPlaceholderTranscription) {
+        transcription = "";
+      }
       
       // Prepare audio file blob if available
       let audioBlob = undefined;
