@@ -15,6 +15,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('submit-case/', submit_case, name='submit-case'),
     path('transcribe/', transcribe_only, name='transcribe-only'),
+    path('transcribe-only/', transcribe_only, name='transcribe-only-legacy'),
     path('translate/', translate_text, name='translate-text'),
     path('health/', health_check, name='ai-health-check'),
     # Override endpoints
