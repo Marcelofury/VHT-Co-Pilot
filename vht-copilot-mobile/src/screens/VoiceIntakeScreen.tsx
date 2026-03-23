@@ -31,6 +31,10 @@ declare global {
   interface MediaStream {
     getTracks(): { stop(): void }[];
   }
+  interface Window {
+    SpeechRecognition?: any;
+    webkitSpeechRecognition?: any;
+  }
 }
 
 // Conditionally import native modules (not available on web)
@@ -92,6 +96,8 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [useTextMode, setUseTextMode] = useState(false);
   const [manualText, setManualText] = useState<string>("");
+  const webSpeechRecognitionRef = useRef<any | null>(null);
+  const webTranscriptRef = useRef<string>("");
 
   // Platform-aware alert function
   const showAlert = (title: string, message: string, onOk?: () => void) => {
@@ -178,6 +184,68 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
     });
   };
 
+  const startWebSpeechRecognition = () => {
+    if (Platform.OS !== 'web') {
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.warn('Web SpeechRecognition not supported in this browser');
+      return;
+    }
+
+    try {
+      webTranscriptRef.current = "";
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.continuous = true;
+      recognition.interimResults = false;
+
+      recognition.onresult = (event: any) => {
+        let transcriptChunk = '';
+        for (let i = event.resultIndex; i < event.results.length; i += 1) {
+          if (event.results[i].isFinal) {
+            transcriptChunk += `${event.results[i][0].transcript} `;
+          }
+        }
+
+        if (transcriptChunk.trim()) {
+          webTranscriptRef.current = `${webTranscriptRef.current}${transcriptChunk}`.trim();
+          setRealTranscription(webTranscriptRef.current);
+          setCurrentSymptom({
+            english: webTranscriptRef.current,
+            luganda: 'Translating...'
+          });
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn('Web SpeechRecognition error:', event?.error || event);
+      };
+
+      recognition.start();
+      webSpeechRecognitionRef.current = recognition;
+    } catch (error) {
+      console.warn('Failed to start web speech recognition:', error);
+    }
+  };
+
+  const stopWebSpeechRecognition = () => {
+    const recognition = webSpeechRecognitionRef.current;
+    if (!recognition) {
+      return;
+    }
+
+    try {
+      recognition.stop();
+    } catch (error) {
+      console.warn('Failed to stop web speech recognition:', error);
+    } finally {
+      webSpeechRecognitionRef.current = null;
+    }
+  };
+
   const handleMicPress = async () => {
     // Web platform: Use browser MediaRecorder API
     if (Platform.OS === 'web' || !Audio) {
@@ -186,6 +254,7 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
         try {
           console.log('Starting web audio recording...');
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          startWebSpeechRecognition();
           
           // @ts-ignore - MediaRecorder types
           const mediaRecorder = new MediaRecorder(stream);
@@ -209,8 +278,20 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
             // Stop all tracks
             stream.getTracks().forEach(track => track.stop());
 
-            // Transcribe right after browser recording finishes.
-            await transcribeAudio(audioUrl);
+            // Use free browser speech transcript first; fallback to backend transcription.
+            setTimeout(async () => {
+              const browserTranscript = webTranscriptRef.current.trim();
+              if (browserTranscript) {
+                setRealTranscription(browserTranscript);
+                setCurrentSymptom({
+                  english: browserTranscript,
+                  luganda: 'Translating...'
+                });
+                await translateToLuganda(browserTranscript);
+              } else {
+                await transcribeAudio(audioUrl);
+              }
+            }, 700);
           };
           
           mediaRecorder.start();
@@ -237,6 +318,7 @@ export const VoiceIntakeScreen: React.FC<VoiceIntakeScreenProps> = ({
         try {
           console.log('Stopping web recording...');
           if (recording) {
+            stopWebSpeechRecognition();
             (recording as any).stop();
           }
           setIsRecording(false);
